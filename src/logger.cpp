@@ -1,0 +1,81 @@
+#include <wcore/assert.hpp>
+#include <wcore/logger.hpp>
+
+#include <spdlog/spdlog.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/sinks/dist_sink.h>
+
+#include <memory>
+
+namespace wcore::logger
+{
+    static std::shared_ptr<spdlog::logger> gLogger;
+
+    static spdlog::level::level_enum to_spdlog(Level level)
+    {
+        switch (level)
+        {
+        case Level::Trace: return spdlog::level::trace;
+        case Level::Debug: return spdlog::level::debug;
+        case Level::Info: return spdlog::level::info;
+        case Level::Warn: return spdlog::level::warn;
+        case Level::Error: return spdlog::level::err;
+        case Level::Fatal: return spdlog::level::critical;
+        case Level::Off: return spdlog::level::off;
+        }
+        WCORE_UNREACHABLE("unknown wcore::logger::Level");
+    }
+
+    void init(Level level, std::string_view filePath)
+    {
+        auto distSink{ std::make_shared<spdlog::sinks::dist_sink_mt>() };
+
+        auto consoleSink{ std::make_shared<spdlog::sinks::stdout_color_sink_mt>() };
+        distSink->add_sink(consoleSink);
+
+        if (!filePath.empty())
+        {
+            auto file_sink{ std::make_shared<spdlog::sinks::basic_file_sink_mt>(
+                std::string(filePath), /*truncate=*/true) };
+            distSink->add_sink(file_sink);
+        }
+
+        gLogger = std::make_shared<spdlog::logger>("desaf", distSink);
+        gLogger->set_level(to_spdlog(level));
+        gLogger->flush_on(spdlog::level::warn);
+
+        set_pattern("[%H:%M:%S] [%^%l%$] %v");
+    }
+
+    void set_level(Level level)
+    {
+        WCORE_ASSERT(gLogger != nullptr,
+            "wcore::logger::init() must be called before set_level()");
+        gLogger->set_level(to_spdlog(level));
+    }
+
+    void set_pattern(std::string_view pattern)
+    {
+        WCORE_ASSERT(gLogger != nullptr,
+            "wcore::logger::init() must be called before set_pattern()");
+        gLogger->set_pattern(std::string(pattern));
+    }
+
+    void flush()
+    {
+        WCORE_ASSERT(gLogger != nullptr,
+            "wcore::logger::init() must be called before flush()");
+        gLogger->flush();
+    }
+
+    namespace internal
+    {
+        void write(Level level, std::string_view msg)
+        {
+            WCORE_ASSERT(gLogger != nullptr,
+                "wcore::logger::init() must be called before logging");
+            gLogger->log(to_spdlog(level), "{}", msg);
+        }
+    }
+}

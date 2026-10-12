@@ -3,6 +3,7 @@
 #include <functional>
 #include <string>
 #include <sstream>
+#include <vector>
 
 namespace wcore
 {
@@ -42,16 +43,16 @@ namespace wcore
 
 #define TEST(name)                                              \
     static void name();                                         \
-    static ::test::Registrar registrar_##name(#name, name);     \
+    static ::wcore::test::Registrar registrar_##name(#name, name);     \
     static void name()
 
 // Non-fatal: records the failure and continues.
 #define CHECK(expr) \
-    do { if (!(expr)) ::test::fail(__FILE__, __LINE__, #expr); } while (0)
+    do { if (!(expr)) ::wcore::test::fail(__FILE__, __LINE__, #expr); } while (0)
 
-#define CHECK_EQ(a, b) ::test::check_eq(__FILE__, __LINE__, #a, #b, (a), (b))
+#define CHECK_EQ(a, b) ::wcore::test::check_eq(__FILE__, __LINE__, #a, #b, (a), (b))
 
 // Fatal: records the failure and stops the current test.
 #define REQUIRE(expr) \
-    do { if (!(expr)) { ::test::fail(__FILE__, __LINE__, #expr); throw ::test::Abort{}; } } while (0)
+    do { if (!(expr)) { ::wcore::test::fail(__FILE__, __LINE__, #expr); throw ::wcore::test::Abort{}; } } while (0)
 }

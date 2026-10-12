@@ -5,12 +5,25 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-add_library(wcore)
+add_library(wcore STATIC
+    "src/logger.cpp")
+add_library(wcore::wcore ALIAS wcore)
 
 # --- Definitions --- #
 target_compile_definitions(wcore
 PUBLIC
     $<$<CONFIG:debug>:WINK_DEBUG=1>)
+
+# --- FetchContent --- #
+include(FetchContent)
+
+FetchContent_Declare(
+    spdlog
+    GIT_REPOSITORY https://github.com/gabime/spdlog.git
+    GIT_TAG        v1.17.0
+    GIT_SHALLOW    TRUE
+)
+FetchContent_MakeAvailable(spdlog)
 
 # --- Targets --- #
 target_include_directories(wcore
@@ -20,13 +33,12 @@ target_include_directories(wcore
 PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-target_sources(wcore
-PRIVATE
-    "src/test.cpp")
+target_link_libraries(wcore PRIVATE spdlog::spdlog)
 
 # --- Tests --- #
 option(WCORE_BUILD_TESTS "Build wcore tests" ON)
 if(WCORE_BUILD_TESTS)
     enable_testing()
+    target_sources(wcore PRIVATE "src/test.cpp")
     add_subdirectory(tests)
 endif()
