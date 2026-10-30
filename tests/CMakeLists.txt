@@ -1,4 +1,4 @@
-foreach(name test_test test_assert test_logger)
+foreach(name test_test test_assert test_logger test_math)
     add_executable(${name} ${name}.cpp)
     target_link_libraries(${name} PRIVATE wcore)
     add_test(NAME wcore.${name} COMMAND ${name})

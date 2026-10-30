@@ -41,9 +41,9 @@ namespace wcore
 		}
 	} // namespace test
 
-#define TEST(name)                                              \
-    static void name();                                         \
-    static ::wcore::test::Registrar registrar_##name(#name, name);     \
+#define TEST(name)														\
+    static void name();													\
+    static ::wcore::test::Registrar registrar_##name(#name, name);      \
     static void name()
 
 // Non-fatal: records the failure and continues.
