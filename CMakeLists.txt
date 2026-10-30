@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.21)
 project(wcore LANGUAGES CXX)
 
 add_library(wcore STATIC
+    "src/clock.cpp"
     "src/logger.cpp")
 add_library(wcore::wcore ALIAS wcore)
 
