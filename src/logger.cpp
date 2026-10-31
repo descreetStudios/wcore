@@ -2,14 +2,21 @@
 #include <wcore/logger.hpp>
 
 #include <spdlog/spdlog.h>
-#include <spdlog/sinks/stdout_color_sinks.h>
-#include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/dist_sink.h>
+#include <spdlog/sinks/ostream_sink.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
 
+#include <filesystem>
+#include <format>
+#include <fstream>
 #include <memory>
+#include <string>
 
 namespace wcore::logger
 {
+    // Declared before the logger so the stream outlives it during static
+    // destruction.
+    static std::unique_ptr<std::ofstream> gFileStream;
     static std::shared_ptr<spdlog::logger> gLogger;
 
     static spdlog::level::level_enum to_spdlog(Level level)
@@ -27,8 +34,12 @@ namespace wcore::logger
         WCORE_UNREACHABLE("unknown wcore::logger::Level");
     }
 
-    void init(Level level, std::string_view filePath)
+    void init(Level level, const std::filesystem::path& filePath)
     {
+        // Drop the previous logger first: its sink still writes to the stream.
+        gLogger.reset();
+        gFileStream.reset();
+
         auto distSink{ std::make_shared<spdlog::sinks::dist_sink_mt>() };
 
         auto consoleSink{ std::make_shared<spdlog::sinks::stdout_color_sink_mt>() };
@@ -36,9 +47,22 @@ namespace wcore::logger
 
         if (!filePath.empty())
         {
-            auto file_sink{ std::make_shared<spdlog::sinks::basic_file_sink_mt>(
-                std::string(filePath), /*truncate=*/true) };
-            distSink->add_sink(file_sink);
+            // The stream is opened from a filesystem::path, so non-ASCII names
+            // work on Windows too (spdlog's own file sinks only take narrow
+            // names unless SPDLOG_WCHAR_FILENAMES is set).
+            auto stream{ std::make_unique<std::ofstream>(
+                filePath, std::ios::binary | std::ios::trunc) };
+
+            if (!stream->is_open())
+            {
+                throw spdlog::spdlog_ex(std::format(
+                    "failed opening log file {}", filePath.string()));
+            }
+
+            auto fileSink{
+                std::make_shared<spdlog::sinks::ostream_sink_mt>(*stream) };
+            distSink->add_sink(fileSink);
+            gFileStream = std::move(stream);
         }
 
         gLogger = std::make_shared<spdlog::logger>("desaf", distSink);

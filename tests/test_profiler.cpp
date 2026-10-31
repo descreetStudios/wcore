@@ -278,3 +278,27 @@ TEST(profiler_write_trace_fails_for_invalid_path)
 
 	CHECK(!p.write_chrome_trace(""));
 }
+
+TEST(profiler_writes_chrome_trace_to_non_ascii_path)
+{
+	// Escapes keep the source encoding independent. On Windows this only
+	// works when the path is opened as a filesystem::path (UTF-16).
+	const fs::path path{ fs::temp_directory_path() /
+		fs::path(u8"wcore_test_tr\u00E4ce_\u00FC.json") };
+
+	std::error_code ec;
+	fs::remove(path, ec);
+
+	Profiler p;
+	p.begin();
+	{
+		Profiler::Scope s{ "unicode_scope", "", p };
+	}
+	p.end();
+
+	CHECK(p.write_chrome_trace(path));
+	CHECK(contains(read_file(path), "unicode_scope"));
+
+	fs::remove(path, ec);
+	CHECK(!fs::exists(path));
+}

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <atomic>
+#include <filesystem>
 #include <mutex>
 #include <string>
 #include <string_view>
@@ -90,8 +91,9 @@ namespace wcore
 		std::string to_chrome_trace() const;
 
 		// Writes to_chrome_trace() to disk. Returns false when the file cannot
-		// be opened or written.
-		bool write_chrome_trace(std::string_view filePath) const;
+		// be opened or written. The path is a filesystem path, so non-ASCII
+		// names work on every platform.
+		bool write_chrome_trace(const std::filesystem::path& filePath) const;
 
 	private:
 		const u64 mId;

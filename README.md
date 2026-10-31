@@ -37,10 +37,6 @@ Tested on Windows with MSVC and on Linux with GCC 13+; the code only uses the
 C++ standard library and treats paths with `std::filesystem`, so no platform
 specific headers or APIs are required.
 
-> Note: file paths are taken as narrow (`std::string_view`) strings. On Windows
-> that means non-ASCII paths are only supported if they can be represented in
-> the active code page.
-
 ### Build
 
 ```bash

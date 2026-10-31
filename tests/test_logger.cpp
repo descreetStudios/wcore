@@ -5,6 +5,7 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <system_error>
 
 using namespace wcore;
 using namespace test;
@@ -165,4 +166,34 @@ TEST(logger_level_enum_ordering)
 	CHECK(L::Warn < L::Error);
 	CHECK(L::Error < L::Fatal);
 	CHECK(L::Fatal < L::Off);
+}
+
+TEST(logger_writes_to_non_ascii_path)
+{
+	// Escapes keep the source encoding independent. On Windows this only
+	// works when the path is opened as a filesystem::path (UTF-16), which is
+	// what logger::init does.
+	const fs::path path{ fs::temp_directory_path() /
+		fs::path(u8"wcore_test_\u00FCn\u00EFc\u00F6d\u00E9.log") };
+
+	std::error_code ec;
+	fs::remove(path, ec);
+
+	logger::init(logger::Level::Info, path);
+	logger::info("unicode path {}", 7);
+	logger::flush();
+
+	std::string content;
+	{
+		// Scoped: Windows cannot delete a file that is still open for reading.
+		std::ifstream in(path, std::ios::binary);
+		std::ostringstream ss;
+		ss << in.rdbuf();
+		content = ss.str();
+	}
+	CHECK(contains(content, "unicode path 7"));
+
+	logger::init(logger::Level::Off);
+	fs::remove(path, ec);
+	CHECK(!fs::exists(path));
 }

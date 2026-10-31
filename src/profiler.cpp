@@ -217,10 +217,9 @@ namespace wcore
 		return out;
 	}
 
-	bool Profiler::write_chrome_trace(std::string_view filePath) const
+	bool Profiler::write_chrome_trace(const std::filesystem::path& filePath) const
 	{
-		std::ofstream out{ std::string(filePath),
-			std::ios::binary | std::ios::trunc };
+		std::ofstream out{ filePath, std::ios::binary | std::ios::trunc };
 		if (!out) return false;
 
 		out << to_chrome_trace();

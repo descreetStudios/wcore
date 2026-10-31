@@ -1,5 +1,6 @@
 #pragma once
 
+#include <filesystem>
 #include <format>
 #include <string>
 #include <string_view>
@@ -16,7 +17,11 @@ namespace wcore::logger
 		Off
 	};
 
-	void init(Level level = Level::Info, std::string_view filePath = "");
+	// Configures the console logger and, when filePath is not empty, a file
+	// sink. The path is a filesystem path, so non-ASCII names work on every
+	// platform. Throws when the file cannot be opened.
+	void init(Level level = Level::Info,
+		const std::filesystem::path& filePath = {});
 	void set_level(Level level);
 
 	// Pattern string, e.g. "[%H:%M:%S] [%^%l%$] %v"
