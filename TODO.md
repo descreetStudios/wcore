@@ -4,7 +4,7 @@
 - [x] Events System
 - [x] Arena Allocator
 - [x] Pool Allocator
-- [ ] Free-List Allocator
+- [x] Free-List Allocator
 - [ ] Job System
 - [ ] I/O Utils
 - [ ] Binary/JSON Helpers
