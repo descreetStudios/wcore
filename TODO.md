@@ -6,5 +6,5 @@
 - [x] Pool Allocator
 - [x] Free-List Allocator
 - [x] Job System
-- [ ] I/O Utils
+- [x] I/O Utils
 - [ ] Binary/JSON Helpers

@@ -3,6 +3,7 @@ project(wcore LANGUAGES CXX)
 
 add_library(wcore STATIC
     "src/clock.cpp"
+    "src/io.cpp"
     "src/logger.cpp"
     "src/profiler.cpp")
 add_library(wcore::wcore ALIAS wcore)
