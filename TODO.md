@@ -7,4 +7,4 @@
 - [x] Free-List Allocator
 - [x] Job System
 - [x] I/O Utils
-- [ ] Binary/JSON Helpers
+- [x] Binary/JSON Helpers
