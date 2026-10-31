@@ -16,10 +16,27 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Set up MSVC
-        uses: ilammy/msvc-dev-cmd@v1
+        shell: pwsh
+        run: |
+          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+          $vsPath = & $vswhere -latest -products * `
+            -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 `
+            -property installationPath
+          if (-not $vsPath) { throw "Visual C++ tools not found" }
+
+          cmd /c "`"$vsPath\VC\Auxiliary\Build\vcvars64.bat`" >nul && set" |
+            ForEach-Object {
+              if ($_ -match '^([^=]+)=(.*)$') {
+                [Environment]::SetEnvironmentVariable($matches[1], $matches[2])
+              }
+            }
+
+          if (-not (Get-Command cl.exe -ErrorAction SilentlyContinue)) {
+            throw "cl.exe not on PATH after vcvars64.bat"
+          }
 
       - name: Ensure Ninja
         shell: pwsh
@@ -43,7 +60,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Ensure Ninja
         run: |
@@ -63,7 +80,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Ensure Ninja
         run: |
@@ -83,7 +100,7 @@ jobs:
     runs-on: macos-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Ensure Ninja
         run: command -v ninja || brew install ninja
