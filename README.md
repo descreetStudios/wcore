@@ -10,6 +10,7 @@
 
 ![C++](https://img.shields.io/badge/C%2B%2B-20-00599C?style=for-the-badge&logo=cplusplus&logoColor=white)
 ![CMake](https://img.shields.io/badge/CMake-build-064F8C?style=for-the-badge&logo=cmake&logoColor=white)
+[![CI](https://github.com/descreetStudios/wcore/actions/workflows/ci.yml/badge.svg)](https://github.com/descreetStudios/wcore/actions/workflows/ci.yml)
 ![Status](https://img.shields.io/badge/status-in%20development-orange?style=for-the-badge)
 
 </div>
