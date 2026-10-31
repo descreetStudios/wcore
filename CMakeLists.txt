@@ -15,6 +15,8 @@ target_compile_definitions(wcore
 PUBLIC
     $<$<CONFIG:Debug>:WINK_DEBUG=1>)
 
+find_package(Threads REQUIRED)
+
 # --- FetchContent --- #
 include(FetchContent)
 
@@ -44,7 +46,7 @@ target_include_directories(wcore
 PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-target_link_libraries(wcore PUBLIC glm::glm)
+target_link_libraries(wcore PUBLIC glm::glm Threads::Threads)
 target_link_libraries(wcore PRIVATE spdlog::spdlog)
 
 # --- Tests --- #

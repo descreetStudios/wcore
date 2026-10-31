@@ -5,6 +5,6 @@
 - [x] Arena Allocator
 - [x] Pool Allocator
 - [x] Free-List Allocator
-- [ ] Job System
+- [x] Job System
 - [ ] I/O Utils
 - [ ] Binary/JSON Helpers
