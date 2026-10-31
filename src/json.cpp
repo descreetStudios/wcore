@@ -6,7 +6,12 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
+#include <iomanip>
 #include <iterator>
+#include <limits>
+#include <locale>
+#include <sstream>
+#include <string>
 #include <system_error>
 #include <utility>
 
@@ -266,6 +271,80 @@ namespace wcore::json
 		bool is_whitespace(char c) noexcept
 		{
 			return c == ' ' || c == '\t' || c == '\n' || c == '\r';
+		}
+
+		// Floating-point <charconv> support is missing from older standard
+		// libraries (libc++ only ships it as of LLVM 20), so fall back to the
+		// classic locale there. Both paths stay locale independent, so the
+		// decimal point is always '.'.
+		template <typename T>
+		concept parseable_with_from_chars = requires (
+			const char* first, const char* last, T& value)
+		{
+			std::from_chars(first, last, value);
+		};
+
+		template <typename T>
+		concept formattable_with_to_chars = requires (
+			char* first, char* last, T value)
+		{
+			std::to_chars(first, last, value);
+		};
+
+		// Parses text as a floating-point value, requiring full consumption.
+		template <typename T>
+		bool parse_float(std::string_view text, T& value)
+		{
+			if constexpr (parseable_with_from_chars<T>)
+			{
+				const auto result = std::from_chars(
+					text.data(), text.data() + text.size(), value);
+
+				return result.ec == std::errc{} &&
+					result.ptr == text.data() + text.size();
+			}
+			else
+			{
+				std::istringstream stream{ std::string(text) };
+				stream.imbue(std::locale::classic());
+
+				T parsed{};
+				stream >> parsed;
+
+				// Overflow sets failbit, trailing garbage leaves eof unset.
+				if (stream.fail() || !stream.eof())
+					return false;
+
+				value = parsed;
+				return true;
+			}
+		}
+
+		// Formats a floating-point value with enough digits for a round trip.
+		template <typename T>
+		std::string format_float(T value)
+		{
+			if constexpr (formattable_with_to_chars<T>)
+			{
+				char buffer[64];
+				const auto result = std::to_chars(
+					buffer, buffer + sizeof(buffer), value);
+
+				WCORE_ASSERT(result.ec == std::errc{},
+					"json number formatting failed");
+
+				return std::string(buffer,
+					static_cast<std::size_t>(result.ptr - buffer));
+			}
+			else
+			{
+				std::ostringstream stream;
+				stream.imbue(std::locale::classic());
+				stream << std::setprecision(
+					std::numeric_limits<T>::max_digits10)
+					<< std::defaultfloat << value;
+				return stream.str();
+			}
 		}
 
 		void append_utf8(std::string& out, u32 code)
@@ -773,11 +852,8 @@ namespace wcore::json
 				}
 
 				double value = 0.0;
-				const auto result = std::from_chars(
-					token.data(), token.data() + token.size(), value);
 
-				if (result.ec != std::errc{} ||
-					result.ptr != token.data() + token.size())
+				if (!parse_float<double>(token, value))
 				{
 					set_error("number out of range");
 					return std::nullopt;
@@ -865,22 +941,14 @@ namespace wcore::json
 					break;
 				}
 
-				char buffer[64];
-				const auto result = std::to_chars(
-					buffer, buffer + sizeof(buffer), number);
-
-				WCORE_ASSERT(result.ec == std::errc{},
-					"json number formatting failed");
-
-				const std::string_view text{ buffer,
-					static_cast<std::size_t>(result.ptr - buffer) };
+				const std::string text{ format_float<double>(number) };
 
 				out.append(text);
 
 				// Keep the value a JSON number on a round trip.
-				if (text.find('.') == std::string_view::npos &&
-					text.find('e') == std::string_view::npos &&
-					text.find('E') == std::string_view::npos)
+				if (text.find('.') == std::string::npos &&
+					text.find('e') == std::string::npos &&
+					text.find('E') == std::string::npos)
 				{
 					out += ".0";
 				}

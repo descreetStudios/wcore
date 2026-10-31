@@ -28,8 +28,18 @@ Instead of every Wink project reinventing its own utilities, WCORE provides a si
 
 ### Requirements
 
-- **C++ compiler** — developed and tested with **MSVC** on Windows
-- **CMake** 3.20 or newer
+- **C++20 compiler** with `<format>` support: **MSVC 19.29+**,
+  **GCC 13+** or **Clang 17+**
+- **CMake** 3.21 or newer (the presets additionally need Ninja)
+- **Ninja** (only when using the bundled CMake presets)
+
+Tested on Windows with MSVC and on Linux with GCC 13+; the code only uses the
+C++ standard library and treats paths with `std::filesystem`, so no platform
+specific headers or APIs are required.
+
+> Note: file paths are taken as narrow (`std::string_view`) strings. On Windows
+> that means non-ASCII paths are only supported if they can be represented in
+> the active code page.
 
 ### Build
 
@@ -78,6 +88,6 @@ Working on a Wink project and need something in the core?
 
 **Made with ♥ for the Wink ecosystem**
 
-*The project contains minimal AI written code*.
+*The project contains minimal, monitored AI written code*.
 
 </div>
