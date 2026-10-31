@@ -1,5 +1,5 @@
 # TODO
-- [ ] Profiler
+- [x] Profiler
 - [ ] Generational Handles System
 - [ ] Events System
 - [ ] Arena Allocator
