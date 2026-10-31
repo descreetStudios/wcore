@@ -1,6 +1,6 @@
 # TODO
 - [x] Profiler
-- [ ] Generational Handles System
+- [x] Generational Handles System
 - [ ] Events System
 - [ ] Arena Allocator
 - [ ] Pool Allocator
