@@ -26,6 +26,7 @@ namespace wcore
 	using glm::radians, glm::degrees;
 
 	// Projection builders
+	// Belong here cause of glm wrapper
 	using glm::perspective, glm::ortho;
 
 	// Constants
