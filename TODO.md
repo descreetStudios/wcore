@@ -2,7 +2,7 @@
 - [x] Profiler
 - [x] Generational Handles System
 - [x] Events System
-- [ ] Arena Allocator
+- [x] Arena Allocator
 - [ ] Pool Allocator
 - [ ] Free-List Allocator
 - [ ] Job System
