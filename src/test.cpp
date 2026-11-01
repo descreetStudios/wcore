@@ -37,7 +37,7 @@ int main(int argc, char** argv)
 			c.fn();
 		}
 		catch (const wcore::test::Abort&) {
-			// Already reported by REQUIRE
+			// Already reported by REQUIRE.
 		}
 		catch (const std::exception& e) {
 			wcore::test::fail(__FILE__, __LINE__,
@@ -56,5 +56,5 @@ int main(int argc, char** argv)
 	}
 
 	std::cout << "\n" << (run - failed) << "/" << run << " tests passed\n";
-	return failed == 0 ? 0 : 1; // on POSIX systems the exit status is truncated to 8 bits
+	return failed == 0 ? 0 : 1; // On POSIX systems the exit status is truncated to 8 bits.
 }

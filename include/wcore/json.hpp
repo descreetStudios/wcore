@@ -32,8 +32,6 @@ namespace wcore::json
 		Object
 	};
 
-	// A JSON value with value semantics. Arrays and objects are copied
-	// deeply, so mutating a copy never affects the original.
 	struct Value
 	{
 		using Storage = std::variant<
@@ -55,8 +53,6 @@ namespace wcore::json
 		Value(Array value);
 		Value(Object value);
 
-		// Integral values are stored as i64 when they fit. Larger unsigned
-		// values fall back to double instead of wrapping.
 		template <typename T>
 			requires (std::is_integral_v<T> &&
 				!std::is_same_v<std::remove_cv_t<T>, bool>)
@@ -100,7 +96,7 @@ namespace wcore::json
 		}
 		[[nodiscard]] bool is_number() const noexcept
 		{
-			const Type t = type();
+			const Type t{ type() };
 			return t == Type::Integer || t == Type::Number;
 		}
 		[[nodiscard]] bool is_string() const noexcept
@@ -127,24 +123,18 @@ namespace wcore::json
 		[[nodiscard]] const Object& as_object() const;
 		[[nodiscard]] Object& as_object();
 
-		// Arrays return their element, objects create a null entry when the
-		// key is missing. Other types abort.
 		[[nodiscard]] Value& operator[](std::size_t index);
 		[[nodiscard]] const Value& operator[](std::size_t index) const;
 
-		// Arrays return their element, objects create a null entry when the
-		// key is missing. Other types abort.
 		[[nodiscard]] Value& operator[](std::string_view key);
 		[[nodiscard]] const Value& operator[](std::string_view key) const;
 
-		// Returns nullptr when this is not an object or the key is absent.
 		[[nodiscard]] Value* find(std::string_view key) noexcept;
 		[[nodiscard]] const Value* find(std::string_view key) const noexcept;
 		[[nodiscard]] bool contains(std::string_view key) const noexcept;
 
 		Value& push_back(Value value);
 
-		// String length, array size, or object size. Other types return 0.
 		[[nodiscard]] std::size_t size() const noexcept;
 		[[nodiscard]] bool empty() const noexcept { return size() == 0; }
 
@@ -162,7 +152,6 @@ namespace wcore::json
 		std::string message;
 	};
 
-	// Returns nullopt on invalid input and fills *error (when non-null).
 	[[nodiscard]] std::optional<Value> parse(
 		std::string_view text, ParseError* error = nullptr);
 
@@ -172,11 +161,9 @@ namespace wcore::json
 		u32 indent{ 2 };
 	};
 
-	// Non-finite numbers are written as null, since JSON has no
-	// representation for them.
 	[[nodiscard]] std::string dump(const Value& value,
 		const DumpOptions& options);
 
 	[[nodiscard]] std::string dump(const Value& value,
 		bool pretty = false, u32 indent = 2);
-} // namespace wcore::json
+}

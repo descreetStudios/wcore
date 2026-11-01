@@ -51,7 +51,7 @@ TEST(json_parse_integer_boundaries)
 
 TEST(json_parse_numbers)
 {
-	const auto decimal = parse_ok("3.5");
+	const auto decimal{ parse_ok("3.5") };
 	CHECK(decimal.is_number());
 	CHECK(!decimal.is_integer());
 	CHECK(std::abs(decimal.as_double() - 3.5) < 1e-12);
@@ -243,8 +243,8 @@ TEST(json_dump_scalars)
 
 TEST(json_dump_non_finite_numbers_as_null)
 {
-	const double inf = std::numeric_limits<double>::infinity();
-	const double nan = std::numeric_limits<double>::quiet_NaN();
+	const double inf{ std::numeric_limits<double>::infinity() };
+	const double nan{ std::numeric_limits<double>::quiet_NaN() };
 
 	CHECK_EQ(json::dump(json::Value(inf)), std::string("null"));
 	CHECK_EQ(json::dump(json::Value(-inf)), std::string("null"));
@@ -300,7 +300,7 @@ TEST(json_dump_round_trip)
 	const auto original = parse_ok(
 		R"({"a":[1,2.5,true,null,"x\n"],"b":{"c":-3}})");
 
-	const std::string canonical = json::dump(original);
+	const std::string canonical{ json::dump(original) };
 	const auto reparsed = parse_ok(canonical);
 
 	CHECK_EQ(json::dump(reparsed), canonical);
@@ -313,11 +313,11 @@ TEST(json_dump_round_trip)
 
 TEST(json_value_deep_copy)
 {
-	json::Value original = json::Value::array();
+	json::Value original{ json::Value::array() };
 	original.push_back(1);
 	original.push_back(json::Value::object());
 
-	json::Value copy = original;
+	json::Value copy{ original };
 	copy[0] = 2;
 	copy[1]["x"] = 3;
 
@@ -336,8 +336,8 @@ TEST(json_value_deep_copy)
 
 TEST(json_value_move)
 {
-	json::Value source = parse_ok("[1,2,3]");
-	json::Value moved = std::move(source);
+	json::Value source{ parse_ok("[1,2,3]") };
+	json::Value moved{ std::move(source) };
 
 	CHECK(moved.is_array());
 	CHECK_EQ(moved.size(), 3u);
@@ -353,7 +353,7 @@ TEST(json_value_move)
 
 TEST(json_value_mutation)
 {
-	json::Value value = json::Value::object();
+	json::Value value{ json::Value::object() };
 	value["name"] = "wcore";
 	value["version"] = 1;
 	value["tags"] = json::Value::array();
@@ -363,7 +363,7 @@ TEST(json_value_mutation)
 	CHECK_EQ(value["name"].as_string(), std::string("wcore"));
 	CHECK_EQ(value.size(), 3u);
 
-	json::Value& tags = value["tags"];
+	json::Value& tags{ value["tags"] };
 	REQUIRE(tags.is_array());
 	CHECK_EQ(tags.size(), 2u);
 	CHECK_EQ(tags[0].as_string(), std::string("core"));

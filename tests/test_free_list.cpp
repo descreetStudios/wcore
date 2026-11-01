@@ -155,7 +155,7 @@ TEST(free_list_allocator_coalesces_adjacent_blocks)
 	FreeListAllocator allocator{ 512 };
 
 	std::vector<void*> blocks;
-	while (void* block = allocator.allocate(64))
+	while (void* block{ allocator.allocate(64) })
 		blocks.push_back(block);
 
 	REQUIRE(blocks.size() >= 2u);
@@ -230,8 +230,8 @@ TEST(free_list_allocator_creates_and_destroys_objects)
 	int alive{ 0 };
 	FreeListAllocator allocator{ 1024 };
 
-	Tracked* first = allocator.create<Tracked>(&alive);
-	Tracked* second = allocator.create<Tracked>(&alive);
+	Tracked* first{ allocator.create<Tracked>(&alive) };
+	Tracked* second{ allocator.create<Tracked>(&alive) };
 
 	REQUIRE(first != nullptr);
 	REQUIRE(second != nullptr);
@@ -270,7 +270,7 @@ TEST(free_list_allocator_throwing_constructor_reclaims)
 TEST(free_list_allocator_supports_over_aligned_types)
 {
 	FreeListAllocator allocator{ 2048 };
-	AlignedValue* value = allocator.create<AlignedValue>(42);
+	AlignedValue* value{ allocator.create<AlignedValue>(42) };
 
 	REQUIRE(value != nullptr);
 	CHECK_EQ(reinterpret_cast<std::uintptr_t>(value) % alignof(AlignedValue), 0u);
@@ -288,7 +288,7 @@ TEST(free_list_allocator_create_returns_null_when_full)
 TEST(free_list_allocator_move_preserves_allocations)
 {
 	FreeListAllocator allocator{ 1024 };
-	int* value = allocator.create<int>(7);
+	int* value{ allocator.create<int>(7) };
 	REQUIRE(value != nullptr);
 
 	const std::size_t used{ allocator.used() };
@@ -311,7 +311,7 @@ TEST(free_list_allocator_move_preserves_allocations)
 TEST(free_list_allocator_move_assignment_preserves_allocations)
 {
 	FreeListAllocator source{ 1024 };
-	int* value = source.create<int>(7);
+	int* value{ source.create<int>(7) };
 	REQUIRE(value != nullptr);
 	const std::size_t used{ source.used() };
 

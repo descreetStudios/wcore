@@ -4,7 +4,6 @@
 #include <bit>
 #include <cstddef>
 #include <cstring>
-#include <limits>
 #include <optional>
 #include <span>
 #include <string>
@@ -13,7 +12,6 @@
 #include <utility>
 #include <vector>
 
-#include <wcore/assert.hpp>
 #include <wcore/types.hpp>
 
 namespace wcore::binary
@@ -96,8 +94,6 @@ namespace wcore::binary
 		Writer() = default;
 		explicit Writer(std::size_t reserve) { mBytes.reserve(reserve); }
 
-		// Writes a scalar in little-endian order (enums use their underlying
-		// type, and bool is written as exactly one byte).
 		template <typename T>
 			requires (std::is_arithmetic_v<T> || std::is_enum_v<T>)
 		void write(T value)
@@ -110,7 +106,6 @@ namespace wcore::binary
 				write_pod(to_little_endian(value));
 		}
 
-		// Writes a scalar in big-endian order.
 		template <typename T>
 			requires (std::is_arithmetic_v<T> || std::is_enum_v<T>)
 		void write_big(T value)
@@ -123,7 +118,6 @@ namespace wcore::binary
 				write_pod(to_big_endian(value));
 		}
 
-		// Writes the raw object representation, without swapping bytes.
 		template <typename T>
 		void write_pod(const T& value)
 		{
@@ -134,43 +128,13 @@ namespace wcore::binary
 			mBytes.insert(mBytes.end(), first, first + sizeof(T));
 		}
 
-		void write_bytes(ByteView bytes)
-		{
-			mBytes.insert(mBytes.end(), bytes.begin(), bytes.end());
-		}
+		void write_bytes(ByteView bytes);
 
-		// Length-prefixed with a little-endian u32.
-		void write_string(std::string_view text)
-		{
-			WCORE_ASSERT(
-				text.size() <= std::numeric_limits<u32>::max(),
-				"binary::Writer string is too long");
+		void write_string(std::string_view text);
 
-			write(static_cast<u32>(text.size()));
-			if (!text.empty())
-			{
-				const auto* first =
-					reinterpret_cast<const Byte*>(text.data());
-				mBytes.insert(mBytes.end(), first, first + text.size());
-			}
-		}
+		void write_varuint(u64 value);
 
-		void write_varuint(u64 value)
-		{
-			while (value >= 0x80)
-			{
-				mBytes.push_back(
-					static_cast<Byte>((value & 0x7F) | 0x80));
-				value >>= 7;
-			}
-
-			mBytes.push_back(static_cast<Byte>(value));
-		}
-
-		void write_varint(i64 value)
-		{
-			write_varuint(zigzag_encode(value));
-		}
+		void write_varint(i64 value);
 
 		[[nodiscard]] const Bytes& data() const noexcept { return mBytes; }
 		[[nodiscard]] Bytes& data() noexcept { return mBytes; }
@@ -212,13 +176,11 @@ namespace wcore::binary
 		}
 		[[nodiscard]] bool empty() const noexcept { return remaining() == 0; }
 
-		// The bytes that have not been consumed yet.
 		[[nodiscard]] ByteView view() const noexcept
 		{
 			return mBytes.subspan(mPos);
 		}
 
-		// Reads a scalar in little-endian order.
 		template <typename T>
 			requires (std::is_arithmetic_v<T> || std::is_enum_v<T>)
 		[[nodiscard]] std::optional<T> read()
@@ -245,7 +207,6 @@ namespace wcore::binary
 			}
 		}
 
-		// Reads a scalar in big-endian order.
 		template <typename T>
 			requires (std::is_arithmetic_v<T> || std::is_enum_v<T>)
 		[[nodiscard]] std::optional<T> read_big()
@@ -272,7 +233,6 @@ namespace wcore::binary
 			}
 		}
 
-		// Reads the raw object representation, without swapping bytes.
 		template <typename T>
 		bool read_pod(T& value)
 		{
@@ -286,100 +246,22 @@ namespace wcore::binary
 			return true;
 		}
 
-		[[nodiscard]] std::optional<ByteView> read_bytes(std::size_t count)
-		{
-			if (!ensure(count)) return std::nullopt;
-
-			const ByteView result = mBytes.subspan(mPos, count);
-			mPos += count;
-			return result;
-		}
+		[[nodiscard]] std::optional<ByteView> read_bytes(std::size_t count);
 
 		// Length-prefixed with a little-endian u32.
-		[[nodiscard]] std::optional<std::string> read_string()
-		{
-			const auto length = read<u32>();
-			if (!length) return std::nullopt;
+		[[nodiscard]] std::optional<std::string> read_string();
 
-			if (*length > remaining())
-			{
-				mFailed = true;
-				return std::nullopt;
-			}
+		[[nodiscard]] std::optional<u64> read_varuint();
 
-			std::string result;
-			if (*length != 0)
-			{
-				result.assign(
-					reinterpret_cast<const char*>(mBytes.data() + mPos),
-					*length);
-			}
+		[[nodiscard]] std::optional<i64> read_varint();
 
-			mPos += *length;
-			return result;
-		}
-
-		[[nodiscard]] std::optional<u64> read_varuint()
-		{
-			u64 result = 0;
-			unsigned shift = 0;
-
-			for (unsigned i = 0; i < 10; ++i)
-			{
-				const auto byte = read<u8>();
-				if (!byte) return std::nullopt;
-
-				const u64 payload = static_cast<u64>(*byte & 0x7F);
-
-				// The tenth byte may only carry the final bit.
-				if (i == 9 && payload > 1)
-				{
-					mFailed = true;
-					return std::nullopt;
-				}
-
-				result |= payload << shift;
-
-				if ((*byte & 0x80) == 0)
-					return result;
-
-				shift += 7;
-			}
-
-			mFailed = true;
-			return std::nullopt;
-		}
-
-		[[nodiscard]] std::optional<i64> read_varint()
-		{
-			const auto raw = read_varuint();
-			if (!raw) return std::nullopt;
-
-			return zigzag_decode(*raw);
-		}
-
-		bool skip(std::size_t count)
-		{
-			if (!ensure(count)) return false;
-
-			mPos += count;
-			return true;
-		}
+		bool skip(std::size_t count);
 
 	private:
-		bool ensure(std::size_t count) noexcept
-		{
-			if (mFailed || count > remaining())
-			{
-				mFailed = true;
-				return false;
-			}
-
-			return true;
-		}
+		bool ensure(std::size_t count) noexcept;
 
 		ByteView mBytes;
 		std::size_t mPos{ 0 };
 		bool mFailed{ false };
 	};
-} // namespace wcore::binary
+}

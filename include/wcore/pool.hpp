@@ -1,137 +1,32 @@
 #pragma once
 
-#include <algorithm>
 #include <cstddef>
-#include <limits>
 #include <new>
 #include <utility>
 #include <vector>
 
-#include <wcore/assert.hpp>
-
 namespace wcore
 {
-	// A fixed-size block pool with an intrusive free list.
 	class PoolAllocator
 	{
 	public:
 		PoolAllocator(std::size_t blockSize,
 			std::size_t alignment = alignof(std::max_align_t),
-			std::size_t blocksPerSlab = 64)
-			: mBlocksPerSlab(blocksPerSlab == 0 ? 1 : blocksPerSlab)
-		{
-			WCORE_ASSERT(blockSize != 0, "Pool block size must be greater than zero");
-			WCORE_ASSERT(alignment != 0 && (alignment & (alignment - 1)) == 0,
-				"Pool alignment must be a power of two");
+			std::size_t blocksPerSlab = 64);
 
-			mBlockAlignment = std::max(alignment, alignof(void*));
-			mBlockSize = align_up(std::max(blockSize, sizeof(void*)),
-				mBlockAlignment);
-
-			WCORE_ASSERT(mBlockSize <=
-				std::numeric_limits<std::size_t>::max() / mBlocksPerSlab,
-				"Pool slab size overflow");
-		}
-
-		~PoolAllocator() { release(); }
+		~PoolAllocator();
 
 		PoolAllocator(const PoolAllocator&) = delete;
 		PoolAllocator& operator=(const PoolAllocator&) = delete;
 
-		PoolAllocator(PoolAllocator&& other) noexcept
-			: mBlockSize(other.mBlockSize),
-			mBlockAlignment(other.mBlockAlignment),
-			mBlocksPerSlab(other.mBlocksPerSlab),
-			mSlabs(std::move(other.mSlabs)),
-			mFree(other.mFree),
-			mUsed(other.mUsed),
-			mCapacity(other.mCapacity)
-		{
-			other.mSlabs.clear();
-			other.mFree = nullptr;
-			other.mUsed = 0;
-			other.mCapacity = 0;
-		}
+		PoolAllocator(PoolAllocator&& other) noexcept;
+		PoolAllocator& operator=(PoolAllocator&& other) noexcept;
 
-		PoolAllocator& operator=(PoolAllocator&& other) noexcept
-		{
-			if (this != &other)
-			{
-				release();
-
-				mBlockSize = other.mBlockSize;
-				mBlockAlignment = other.mBlockAlignment;
-				mBlocksPerSlab = other.mBlocksPerSlab;
-				mSlabs = std::move(other.mSlabs);
-				mFree = other.mFree;
-				mUsed = other.mUsed;
-				mCapacity = other.mCapacity;
-
-				other.mSlabs.clear();
-				other.mFree = nullptr;
-				other.mUsed = 0;
-				other.mCapacity = 0;
-			}
-			return *this;
-		}
-
-		// Returns one block, growing the pool when the free list is empty.
-		[[nodiscard]] void* allocate()
-		{
-			if (!mFree) grow();
-
-			FreeNode* node{ mFree };
-			mFree = node->next;
-			++mUsed;
-			return node;
-		}
-
-		// Returns block to the free list. Does not run destructors.
-		void deallocate(void* block) noexcept
-		{
-			if (!block) return;
-
-			WCORE_ASSERT(mUsed > 0, "PoolAllocator deallocate underflow");
-			mFree = ::new (block) FreeNode{ mFree };
-			--mUsed;
-		}
-
-		// Returns every block to the free list without freeing slabs.
-		// Live objects are not destroyed.
-		void reset() noexcept
-		{
-			mFree = nullptr;
-
-			for (void* data : mSlabs)
-			{
-				auto* block = static_cast<std::byte*>(data);
-				for (std::size_t i{ 0 }; i < mBlocksPerSlab; ++i)
-				{
-					mFree = ::new (block) FreeNode{ mFree };
-					block += mBlockSize;
-				}
-			}
-
-			mUsed = 0;
-		}
-
-		// Frees every slab. Live objects are not destroyed.
-		void release() noexcept
-		{
-			for (void* data : mSlabs)
-				free_raw(data, mBlockAlignment);
-
-			mSlabs.clear();
-			mFree = nullptr;
-			mUsed = 0;
-			mCapacity = 0;
-		}
-
-		// Preallocates enough slabs for at least blockCount blocks.
-		void reserve(std::size_t blockCount)
-		{
-			while (mCapacity < blockCount) grow();
-		}
+		[[nodiscard]] void* allocate();
+		void deallocate(void* block) noexcept;
+		void reset() noexcept;
+		void release() noexcept;
+		void reserve(std::size_t blockCount);
 
 		std::size_t block_size() const noexcept { return mBlockSize; }
 		std::size_t block_alignment() const noexcept { return mBlockAlignment; }
@@ -148,62 +43,10 @@ namespace wcore
 			FreeNode* next;
 		};
 
-#if defined(__STDCPP_DEFAULT_NEW_ALIGNMENT__)
-		static constexpr std::size_t DefaultNewAlignment{
-			__STDCPP_DEFAULT_NEW_ALIGNMENT__ };
-#else
-		static constexpr std::size_t DefaultNewAlignment{
-			alignof(std::max_align_t) };
-#endif
-
-		static std::size_t align_up(std::size_t value, std::size_t alignment)
-		{
-			WCORE_ASSERT(
-				value <= std::numeric_limits<std::size_t>::max() - (alignment - 1),
-				"Pool block size overflow");
-			return (value + alignment - 1) & ~(alignment - 1);
-		}
-
-		static void* allocate_raw(std::size_t bytes, std::size_t alignment)
-		{
-			if (alignment > DefaultNewAlignment)
-				return ::operator new(bytes, std::align_val_t(alignment));
-
-			return ::operator new(bytes);
-		}
-
-		static void free_raw(void* data, std::size_t alignment) noexcept
-		{
-			if (alignment > DefaultNewAlignment)
-				::operator delete(data, std::align_val_t(alignment));
-			else
-				::operator delete(data);
-		}
-
-		void grow()
-		{
-			const std::size_t bytes{ mBlockSize * mBlocksPerSlab };
-			void* data{ allocate_raw(bytes, mBlockAlignment) };
-
-			try
-			{
-				mSlabs.push_back(data);
-			}
-			catch (...)
-			{
-				free_raw(data, mBlockAlignment);
-				throw;
-			}
-
-			mCapacity += mBlocksPerSlab;
-
-			auto* block = static_cast<std::byte*>(data);
-			for (std::size_t i{ 0 }; i < mBlocksPerSlab; ++i)
-			{
-				mFree = ::new (block) FreeNode{ mFree };
-				block += mBlockSize;
-			}
-		}
+		static std::size_t align_up(std::size_t value, std::size_t alignment);
+		static void* allocate_raw(std::size_t bytes, std::size_t alignment);
+		static void free_raw(void* data, std::size_t alignment) noexcept;
+		void grow();
 
 		std::size_t mBlockSize{ 0 };
 		std::size_t mBlockAlignment{ 0 };
@@ -214,7 +57,6 @@ namespace wcore
 		std::size_t mCapacity{ 0 };
 	};
 
-	// A typed object pool built on PoolAllocator.
 	template <typename T>
 	class Pool
 	{
@@ -228,20 +70,16 @@ namespace wcore
 		Pool(Pool&&) noexcept = default;
 		Pool& operator=(Pool&&) noexcept = default;
 
-		// Returns an unconstructed block.
 		[[nodiscard]] T* allocate()
 		{
 			return static_cast<T*>(mAllocator.allocate());
 		}
 
-		// Returns a block without running T's destructor.
 		void deallocate(T* object) noexcept
 		{
 			mAllocator.deallocate(object);
 		}
 
-		// Constructs a T in a pooled block. The block is returned to the pool
-		// if the constructor throws.
 		template <typename... Args>
 		[[nodiscard]] T* create(Args&&... args)
 		{
@@ -259,7 +97,6 @@ namespace wcore
 			}
 		}
 
-		// Runs T's destructor and returns the block to the pool.
 		void destroy(T* object)
 		{
 			if (!object) return;
@@ -290,4 +127,4 @@ namespace wcore
 	private:
 		PoolAllocator mAllocator;
 	};
-} // namespace wcore
+}

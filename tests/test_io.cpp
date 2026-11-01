@@ -52,9 +52,11 @@ namespace
 		return result;
 	}
 
-	bool contains(const std::vector<fs::path>& entries, const fs::path& entry)
+	bool contains(const std::vector<fs::path>& entries,
+		const fs::path& entry)
 	{
-		return std::find(entries.begin(), entries.end(), entry) != entries.end();
+		return std::find(entries.begin(),
+			entries.end(), entry) != entries.end();
 	}
 }
 
@@ -156,8 +158,8 @@ TEST(io_binary_round_trip)
 {
 	TempDir dir;
 	const fs::path file{ dir / "data.bin" };
-	const std::vector<std::byte> bytes =
-		make_bytes({ 0u, 1u, 2u, 127u, 128u, 255u });
+	const std::vector<std::byte> bytes{
+		make_bytes({ 0u, 1u, 2u, 127u, 128u, 255u }) };
 
 	REQUIRE(io::write_binary(file, std::span<const std::byte>(bytes)));
 
@@ -185,8 +187,8 @@ TEST(io_append_binary)
 {
 	TempDir dir;
 	const fs::path file{ dir / "append.bin" };
-	const std::vector<std::byte> first = make_bytes({ 1u, 2u });
-	const std::vector<std::byte> second = make_bytes({ 3u, 4u });
+	const std::vector<std::byte> first{ make_bytes({ 1u, 2u }) };
+	const std::vector<std::byte> second{ make_bytes({ 3u, 4u }) };
 
 	CHECK(io::append_binary(file, std::span<const std::byte>(first)));
 	CHECK(io::append_binary(file, std::span<const std::byte>(second)));
@@ -299,10 +301,8 @@ TEST(io_remove_file)
 	CHECK(io::remove_file(file));
 	CHECK(!io::exists(file));
 
-	// Already absent is still success.
 	CHECK(io::remove_file(file));
 
-	// Directories are handled by remove_all instead.
 	const fs::path sub{ dir / "sub" };
 	REQUIRE(io::create_directory(sub));
 	CHECK(!io::remove_file(sub));
@@ -320,7 +320,6 @@ TEST(io_remove_all)
 	CHECK(io::remove_all(root));
 	CHECK(!io::exists(root));
 
-	// Already absent is still success.
 	CHECK(io::remove_all(root));
 }
 
@@ -426,7 +425,7 @@ TEST(io_join_paths)
 		fs::path("root") / "file.txt");
 	CHECK(io::join().empty());
 
-	const std::vector<io::path> parts{ "a", "b", "c" };
-	CHECK_EQ(io::join(std::span<const io::path>(parts)),
+	const std::vector<io::Path> parts{ "a", "b", "c" };
+	CHECK_EQ(io::join(std::span<const io::Path>(parts)),
 		fs::path("a") / "b" / "c");
 }

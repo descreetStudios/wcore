@@ -27,7 +27,7 @@ namespace wcore::io
 			if (ec) ec->clear();
 		}
 
-		std::error_code open_error(const path& file) noexcept
+		std::error_code open_error(const Path& file) noexcept
 		{
 			std::error_code ec;
 
@@ -41,10 +41,10 @@ namespace wcore::io
 			return io_error();
 		}
 
-		bool ensure_parent_directory(const path& file,
+		bool ensure_parent_directory(const Path& file,
 			std::error_code* ec)
 		{
-			const path parent{ file.parent_path() };
+			const Path parent{ file.parent_path() };
 			if (parent.empty())
 			{
 				clear_error(ec);
@@ -64,7 +64,7 @@ namespace wcore::io
 		}
 
 		template <typename Container>
-		std::optional<Container> read_raw(const path& file,
+		std::optional<Container> read_raw(const Path& file,
 			std::error_code* ec)
 		{
 			std::ifstream input(file, std::ios::binary);
@@ -89,7 +89,7 @@ namespace wcore::io
 				return std::nullopt;
 			}
 
-			const auto length{ static_cast<std::uintmax_t>(end) };
+			const auto length = static_cast<std::uintmax_t>(end);
 			if (length > std::numeric_limits<std::size_t>::max() ||
 				length > static_cast<std::uintmax_t>(
 					std::numeric_limits<std::streamsize>::max()))
@@ -116,7 +116,7 @@ namespace wcore::io
 			return data;
 		}
 
-		bool write_raw(const path& file, const void* data, std::size_t size,
+		bool write_raw(const Path& file, const void* data, std::size_t size,
 			bool append, bool create_parent_directories,
 			std::error_code* ec)
 		{
@@ -199,37 +199,37 @@ namespace wcore::io
 
 			return lines;
 		}
-	} // namespace
+	} // anonymous namespace
 
-	std::optional<std::string> read_text(const path& file,
+	std::optional<std::string> read_text(const Path& file,
 		std::error_code* ec)
 	{
 		return read_raw<std::string>(file, ec);
 	}
 
-	bool write_text(const path& file, std::string_view text,
+	bool write_text(const Path& file, std::string_view text,
 		bool create_parent_directories, std::error_code* ec)
 	{
 		return write_raw(file, text.data(), text.size(), false,
 			create_parent_directories, ec);
 	}
 
-	bool append_text(const path& file, std::string_view text,
+	bool append_text(const Path& file, std::string_view text,
 		bool create_parent_directories, std::error_code* ec)
 	{
 		return write_raw(file, text.data(), text.size(), true,
 			create_parent_directories, ec);
 	}
 
-	std::optional<Lines> read_lines(const path& file, std::error_code* ec)
+	std::optional<Lines> read_lines(const Path& file, std::error_code* ec)
 	{
-		const auto text{ read_text(file, ec) };
+		const auto text = read_text(file, ec);
 		if (!text) return std::nullopt;
 
 		return split_lines(*text);
 	}
 
-	bool write_lines(const path& file, std::span<const std::string> lines,
+	bool write_lines(const Path& file, std::span<const std::string> lines,
 		bool create_parent_directories, std::error_code* ec)
 	{
 		std::size_t total{ 0 };
@@ -248,26 +248,26 @@ namespace wcore::io
 		return write_text(file, text, create_parent_directories, ec);
 	}
 
-	std::optional<Bytes> read_binary(const path& file, std::error_code* ec)
+	std::optional<Bytes> read_binary(const Path& file, std::error_code* ec)
 	{
 		return read_raw<Bytes>(file, ec);
 	}
 
-	bool write_binary(const path& file, std::span<const std::byte> data,
+	bool write_binary(const Path& file, std::span<const std::byte> data,
 		bool create_parent_directories, std::error_code* ec)
 	{
 		return write_raw(file, data.data(), data.size(), false,
 			create_parent_directories, ec);
 	}
 
-	bool append_binary(const path& file, std::span<const std::byte> data,
+	bool append_binary(const Path& file, std::span<const std::byte> data,
 		bool create_parent_directories, std::error_code* ec)
 	{
 		return write_raw(file, data.data(), data.size(), true,
 			create_parent_directories, ec);
 	}
 
-	bool exists(const path& entry, std::error_code* ec) noexcept
+	bool exists(const Path& entry, std::error_code* ec) noexcept
 	{
 		std::error_code local;
 		const bool result{ std::filesystem::exists(entry, local) };
@@ -281,7 +281,7 @@ namespace wcore::io
 		return result;
 	}
 
-	bool is_file(const path& entry, std::error_code* ec) noexcept
+	bool is_file(const Path& entry, std::error_code* ec) noexcept
 	{
 		std::error_code local;
 		const bool result{ std::filesystem::is_regular_file(entry, local) };
@@ -295,7 +295,7 @@ namespace wcore::io
 		return result;
 	}
 
-	bool is_directory(const path& entry, std::error_code* ec) noexcept
+	bool is_directory(const Path& entry, std::error_code* ec) noexcept
 	{
 		std::error_code local;
 		const bool result{ std::filesystem::is_directory(entry, local) };
@@ -309,7 +309,7 @@ namespace wcore::io
 		return result;
 	}
 
-	std::optional<u64> file_size(const path& file,
+	std::optional<u64> file_size(const Path& file,
 		std::error_code* ec) noexcept
 	{
 		std::error_code local;
@@ -324,11 +324,11 @@ namespace wcore::io
 		return static_cast<u64>(size);
 	}
 
-	std::optional<file_time> last_write_time(const path& entry,
+	std::optional<FileTime> last_write_time(const Path& entry,
 		std::error_code* ec) noexcept
 	{
 		std::error_code local;
-		const file_time time{ std::filesystem::last_write_time(entry, local) };
+		const FileTime time{ std::filesystem::last_write_time(entry, local) };
 		if (local)
 		{
 			set_error(ec, local);
@@ -339,7 +339,7 @@ namespace wcore::io
 		return time;
 	}
 
-	bool create_directory(const path& directory, std::error_code* ec) noexcept
+	bool create_directory(const Path& directory, std::error_code* ec) noexcept
 	{
 		std::error_code local;
 		std::filesystem::create_directory(directory, local);
@@ -353,7 +353,7 @@ namespace wcore::io
 		return true;
 	}
 
-	bool create_directories(const path& directory,
+	bool create_directories(const Path& directory,
 		std::error_code* ec) noexcept
 	{
 		std::error_code local;
@@ -368,7 +368,7 @@ namespace wcore::io
 		return true;
 	}
 
-	bool remove_file(const path& file, std::error_code* ec) noexcept
+	bool remove_file(const Path& file, std::error_code* ec) noexcept
 	{
 		std::error_code local;
 		const std::filesystem::file_status status{
@@ -403,7 +403,7 @@ namespace wcore::io
 		return true;
 	}
 
-	bool remove_all(const path& entry, std::error_code* ec) noexcept
+	bool remove_all(const Path& entry, std::error_code* ec) noexcept
 	{
 		std::error_code local;
 		std::filesystem::remove_all(entry, local);
@@ -417,7 +417,7 @@ namespace wcore::io
 		return true;
 	}
 
-	bool copy_file(const path& from, const path& to, bool overwrite,
+	bool copy_file(const Path& from, const Path& to, bool overwrite,
 		std::error_code* ec) noexcept
 	{
 		std::error_code local;
@@ -438,7 +438,7 @@ namespace wcore::io
 		return copied;
 	}
 
-	bool rename(const path& from, const path& to, bool overwrite,
+	bool rename(const Path& from, const Path& to, bool overwrite,
 		std::error_code* ec) noexcept
 	{
 		if (from == to)
@@ -485,10 +485,10 @@ namespace wcore::io
 		return true;
 	}
 
-	std::optional<std::vector<path>> list_directory(const path& directory,
+	std::optional<std::vector<Path>> list_directory(const Path& directory,
 		bool recursive, std::error_code* ec)
 	{
-		std::vector<path> entries;
+		std::vector<Path> entries;
 		std::error_code local;
 
 		if (recursive)
@@ -549,10 +549,10 @@ namespace wcore::io
 		return entries;
 	}
 
-	std::optional<path> current_path(std::error_code* ec) noexcept
+	std::optional<Path> current_path(std::error_code* ec) noexcept
 	{
 		std::error_code local;
-		const path result{ std::filesystem::current_path(local) };
+		const Path result{ std::filesystem::current_path(local) };
 		if (local)
 		{
 			set_error(ec, local);
@@ -563,10 +563,10 @@ namespace wcore::io
 		return result;
 	}
 
-	std::optional<path> temp_directory(std::error_code* ec) noexcept
+	std::optional<Path> temp_directory(std::error_code* ec) noexcept
 	{
 		std::error_code local;
-		const path result{ std::filesystem::temp_directory_path(local) };
+		const Path result{ std::filesystem::temp_directory_path(local) };
 		if (local)
 		{
 			set_error(ec, local);
@@ -577,11 +577,11 @@ namespace wcore::io
 		return result;
 	}
 
-	path join(std::span<const path> parts)
+	Path join(std::span<const Path> parts)
 	{
-		path result;
+		Path result;
 
-		for (const path& part : parts)
+		for (const Path& part : parts)
 		{
 			if (part.empty()) continue;
 			if (result.empty()) result = part;
@@ -590,4 +590,4 @@ namespace wcore::io
 
 		return result;
 	}
-} // namespace wcore::io
+}

@@ -14,8 +14,6 @@
 
 namespace wcore::logger
 {
-    // Declared before the logger so the stream outlives it during static
-    // destruction.
     static std::unique_ptr<std::ofstream> gFileStream;
     static std::shared_ptr<spdlog::logger> gLogger;
 
@@ -36,22 +34,19 @@ namespace wcore::logger
 
     void init(Level level, const std::filesystem::path& filePath)
     {
-        // Drop the previous logger first: its sink still writes to the stream.
         gLogger.reset();
         gFileStream.reset();
 
-        auto distSink{ std::make_shared<spdlog::sinks::dist_sink_mt>() };
-
-        auto consoleSink{ std::make_shared<spdlog::sinks::stdout_color_sink_mt>() };
+        auto distSink = std::make_shared<
+            spdlog::sinks::dist_sink_mt>();
+        auto consoleSink = std::make_shared<
+            spdlog::sinks::stdout_color_sink_mt>();
         distSink->add_sink(consoleSink);
 
         if (!filePath.empty())
         {
-            // The stream is opened from a filesystem::path, so non-ASCII names
-            // work on Windows too (spdlog's own file sinks only take narrow
-            // names unless SPDLOG_WCHAR_FILENAMES is set).
-            auto stream{ std::make_unique<std::ofstream>(
-                filePath, std::ios::binary | std::ios::trunc) };
+            auto stream = std::make_unique<std::ofstream>(
+                filePath, std::ios::binary | std::ios::trunc);
 
             if (!stream->is_open())
             {
@@ -59,8 +54,8 @@ namespace wcore::logger
                     "failed opening log file {}", filePath.string()));
             }
 
-            auto fileSink{
-                std::make_shared<spdlog::sinks::ostream_sink_mt>(*stream) };
+            auto fileSink = std::make_shared<
+                spdlog::sinks::ostream_sink_mt>(*stream);
             distSink->add_sink(fileSink);
             gFileStream = std::move(stream);
         }

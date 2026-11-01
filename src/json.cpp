@@ -52,8 +52,6 @@ namespace wcore::json
 
 	Value::Value(Value&& other) noexcept : mData(std::move(other.mData))
 	{
-		// Leave the source as null rather than holding a moved-from
-		// container pointer or string.
 		other.mData = nullptr;
 	}
 
@@ -186,21 +184,21 @@ namespace wcore::json
 
 	Value& Value::operator[](std::size_t index)
 	{
-		Array& values = as_array();
+		Array& values{ as_array() };
 		WCORE_ASSERT(index < values.size(), "json array index out of range");
 		return values[index];
 	}
 
 	const Value& Value::operator[](std::size_t index) const
 	{
-		const Array& values = as_array();
+		const Array& values{ as_array() };
 		WCORE_ASSERT(index < values.size(), "json array index out of range");
 		return values[index];
 	}
 
 	Value& Value::operator[](std::string_view key)
 	{
-		Object& values = as_object();
+		Object& values{ as_object() };
 		const auto [it, inserted] = values.try_emplace(std::string(key));
 		(void)inserted;
 		return it->second;
@@ -208,7 +206,7 @@ namespace wcore::json
 
 	const Value& Value::operator[](std::string_view key) const
 	{
-		const Object& values = as_object();
+		const Object& values{ as_object() };
 		const auto it = values.find(key);
 		WCORE_ASSERT(it != values.end(), "json object key not found");
 		return it->second;
@@ -218,7 +216,7 @@ namespace wcore::json
 	{
 		if (!is_object()) return nullptr;
 
-		Object& values = as_object();
+		Object& values{ as_object() };
 		const auto it = values.find(key);
 		return it == values.end() ? nullptr : &it->second;
 	}
@@ -227,7 +225,7 @@ namespace wcore::json
 	{
 		if (!is_object()) return nullptr;
 
-		const Object& values = as_object();
+		const Object& values{ as_object() };
 		const auto it = values.find(key);
 		return it == values.end() ? nullptr : &it->second;
 	}
@@ -239,7 +237,7 @@ namespace wcore::json
 
 	Value& Value::push_back(Value value)
 	{
-		Array& values = as_array();
+		Array& values{ as_array() };
 		values.push_back(std::move(value));
 		return values.back();
 	}
@@ -273,10 +271,6 @@ namespace wcore::json
 			return c == ' ' || c == '\t' || c == '\n' || c == '\r';
 		}
 
-		// Floating-point <charconv> support is missing from older standard
-		// libraries (libc++ only ships it as of LLVM 20), so fall back to the
-		// classic locale there. Both paths stay locale independent, so the
-		// decimal point is always '.'.
 		template <typename T>
 		concept parseable_with_from_chars = requires (
 			const char* first, const char* last, T& value)
@@ -291,7 +285,6 @@ namespace wcore::json
 			std::to_chars(first, last, value);
 		};
 
-		// Parses text as a floating-point value, requiring full consumption.
 		template <typename T>
 		bool parse_float(std::string_view text, T& value)
 		{
@@ -320,13 +313,12 @@ namespace wcore::json
 			}
 		}
 
-		// Formats a floating-point value with enough digits for a round trip.
 		template <typename T>
 		std::string format_float(T value)
 		{
 			if constexpr (formattable_with_to_chars<T>)
 			{
-				char buffer[64];
+				char buffer[64]{};
 				const auto result = std::to_chars(
 					buffer, buffer + sizeof(buffer), value);
 
@@ -430,10 +422,10 @@ namespace wcore::json
 
 				mError->offset = mPos;
 
-				std::size_t line = 1;
-				std::size_t column = 1;
+				std::size_t line{ 1 };
+				std::size_t column{ 1 };
 
-				for (std::size_t i = 0; i < mPos && i < mText.size(); ++i)
+				for (std::size_t i{ 0 }; i < mPos && i < mText.size(); ++i)
 				{
 					if (mText[i] == '\n')
 					{
@@ -639,7 +631,7 @@ namespace wcore::json
 						return std::nullopt;
 					}
 
-					const char c = mText[mPos];
+					const char c{ mText[mPos] };
 
 					if (c == '"')
 					{
@@ -668,7 +660,7 @@ namespace wcore::json
 						return std::nullopt;
 					}
 
-					const char escape = mText[mPos++];
+					const char escape{ mText[mPos++] };
 
 					switch (escape)
 					{
@@ -699,11 +691,11 @@ namespace wcore::json
 					return false;
 				}
 
-				u32 value = 0;
+				u32 value{ 0 };
 
-				for (int i = 0; i < 4; ++i)
+				for (int i{ 0 }; i < 4; ++i)
 				{
-					const char c = mText[mPos++];
+					const char c{ mText[mPos++] };
 					value <<= 4;
 
 					if (c >= '0' && c <= '9')
@@ -725,7 +717,7 @@ namespace wcore::json
 
 			bool parse_unicode_escape(std::string& out)
 			{
-				u32 code = 0;
+				u32 code{ 0 };
 				if (!parse_hex4(code))
 					return false;
 
@@ -741,7 +733,7 @@ namespace wcore::json
 
 					mPos += 2;
 
-					u32 low = 0;
+					u32 low{ 0 };
 					if (!parse_hex4(low))
 						return false;
 
@@ -766,7 +758,7 @@ namespace wcore::json
 
 			std::optional<Value> parse_number()
 			{
-				const std::size_t start = mPos;
+				const std::size_t start{ mPos };
 
 				if (mText[mPos] == '-')
 					++mPos;
@@ -777,10 +769,7 @@ namespace wcore::json
 					return std::nullopt;
 				}
 
-				if (mText[mPos] == '0')
-				{
-					++mPos;
-				}
+				if (mText[mPos] == '0') ++mPos;
 				else if (mText[mPos] >= '1' && mText[mPos] <= '9')
 				{
 					do
@@ -794,7 +783,7 @@ namespace wcore::json
 					return std::nullopt;
 				}
 
-				bool integer = true;
+				bool integer{ true };
 
 				if (mPos < mText.size() && mText[mPos] == '.')
 				{
@@ -834,12 +823,12 @@ namespace wcore::json
 						++mPos;
 				}
 
-				const std::string_view token =
-					mText.substr(start, mPos - start);
+				const std::string_view token{
+					mText.substr(start, mPos - start) };
 
 				if (integer)
 				{
-					i64 value = 0;
+					i64 value{ 0 };
 					const auto result = std::from_chars(
 						token.data(), token.data() + token.size(),
 						value);
@@ -851,7 +840,7 @@ namespace wcore::json
 					}
 				}
 
-				double value = 0.0;
+				double value{ 0.0 };
 
 				if (!parse_float<double>(token, value))
 				{
@@ -869,7 +858,7 @@ namespace wcore::json
 
 		void escape_string(std::string& out, std::string_view text)
 		{
-			static constexpr char Hex[] = "0123456789abcdef";
+			static constexpr char Hex[]{ "0123456789abcdef" };
 
 			out += '"';
 
@@ -893,10 +882,7 @@ namespace wcore::json
 						out += Hex[c >> 4];
 						out += Hex[c & 0x0F];
 					}
-					else
-					{
-						out += raw;
-					}
+					else out += raw;
 					break;
 				}
 			}
@@ -933,7 +919,7 @@ namespace wcore::json
 
 			case Type::Number:
 			{
-				const double number = value.as_double();
+				const double number{ value.as_double() };
 
 				if (!std::isfinite(number))
 				{
@@ -961,7 +947,7 @@ namespace wcore::json
 
 			case Type::Array:
 			{
-				const Array& values = value.as_array();
+				const Array& values{ value.as_array() };
 
 				if (values.empty())
 				{
@@ -969,15 +955,15 @@ namespace wcore::json
 					break;
 				}
 
-				const std::size_t step =
-					static_cast<std::size_t>(depth + 1) * options.indent;
+				const std::size_t step{
+					static_cast<std::size_t>(depth + 1) * options.indent };
 
 				out += '[';
 
 				if (options.pretty)
 					out += '\n';
 
-				for (std::size_t i = 0; i < values.size(); ++i)
+				for (std::size_t i{ 0 }; i < values.size(); ++i)
 				{
 					if (options.pretty)
 						out.append(step, ' ');
@@ -1004,7 +990,7 @@ namespace wcore::json
 
 			case Type::Object:
 			{
-				const Object& values = value.as_object();
+				const Object& values{ value.as_object() };
 
 				if (values.empty())
 				{
@@ -1012,8 +998,8 @@ namespace wcore::json
 					break;
 				}
 
-				const std::size_t step =
-					static_cast<std::size_t>(depth + 1) * options.indent;
+				const std::size_t step{
+					static_cast<std::size_t>(depth + 1) * options.indent };
 
 				out += '{';
 
@@ -1069,4 +1055,4 @@ namespace wcore::json
 	{
 		return dump(value, DumpOptions{ pretty, indent });
 	}
-} // namespace wcore::json
+}

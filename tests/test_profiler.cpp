@@ -281,8 +281,6 @@ TEST(profiler_write_trace_fails_for_invalid_path)
 
 TEST(profiler_writes_chrome_trace_to_non_ascii_path)
 {
-	// Escapes keep the source encoding independent. On Windows this only
-	// works when the path is opened as a filesystem::path (UTF-16).
 	const fs::path path{ fs::temp_directory_path() /
 		fs::path(u8"wcore_test_tr\u00E4ce_\u00FC.json") };
 

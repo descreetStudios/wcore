@@ -120,7 +120,7 @@ TEST(event_bus_explicit_unsubscribe)
 	CHECK_EQ(calls, 0);
 	CHECK(bus.empty());
 
-	sub.unsubscribe(); // idempotent
+	sub.unsubscribe();
 }
 
 TEST(event_bus_move_subscription_transfers_ownership)

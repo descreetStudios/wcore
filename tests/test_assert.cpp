@@ -27,7 +27,7 @@ TEST(assert_passes_when_true)
 TEST(assert_accepts_runtime_expressions)
 {
 	int x{ 5 };
-	std::string s = "wcore";
+	std::string s{ "wcore" };
 	WCORE_ASSERT(x > 0 && x < 10, "x in range");
 	WCORE_ASSERT(!s.empty(), "string not empty");
 	WCORE_ASSERT(add(2, 3) == 5, "function call in expression");
@@ -43,7 +43,6 @@ TEST(assert_evaluates_expression_exactly_once)
 
 TEST(assert_is_a_single_statement)
 {
-	// do { } while(0) wrapper: must be safe in un-braced if/else
 	int branch{ 0 };
 	if (branch == 0)
 		WCORE_ASSERT(true, "if-branch");
@@ -70,10 +69,10 @@ TEST(assert_debug_evaluation_depends_on_ndebug)
 	gCalls = 0;
 	WCORE_ASSERT_DEBUG(counted_true(), "side effect check");
 #ifdef NDEBUG
-	// stripped in release: expression must not be evaluated
+	// Expression must not be evaluated.
 	CHECK_EQ(gCalls, 0);
 #else
-	// active in debug: evaluated exactly once
+	// Evaluated exactly once.
 	CHECK_EQ(gCalls, 1);
 #endif
 }

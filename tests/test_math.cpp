@@ -10,7 +10,6 @@
 #include <string>
 #include <type_traits>
 
-// The aliases must be the glm types themselves.
 static_assert(std::is_same_v<wcore::vec3, glm::vec3>);
 static_assert(std::is_same_v<wcore::mat4, glm::mat4>);
 static_assert(std::is_same_v<wcore::quat, glm::quat>);
@@ -50,7 +49,6 @@ struct TempFile
 	}
 	~TempFile()
 	{
-		// release the sink before deleting
 		logger::init(logger::Level::Off);
 		std::error_code ec;
 		fs::remove(path, ec);
@@ -58,7 +56,6 @@ struct TempFile
 	std::string str() const { return path.string(); }
 };
 
-// ADL functions
 TEST(math_adl_functions_unqualified)
 {
 	const vec3 v{ 1.0f, 2.0f, 2.0f };
@@ -72,7 +69,6 @@ TEST(math_adl_functions_unqualified)
 	CHECK(std::abs(dot(ex, ez)) < 1e-6f);
 }
 
-// non-ADL whitelist
 TEST(math_scalar_whitelist)
 {
 	constexpr float tolerance{ 1e-6f };
@@ -80,7 +76,6 @@ TEST(math_scalar_whitelist)
 	CHECK(std::abs(degrees(half_pi<float>()) - 90.0f) < tolerance);
 	CHECK(std::abs(two_pi<float>() - 2.0f * pi<float>()) < tolerance);
 
-	// Projection builders: unqualified, scalar-only arguments.
 	const mat4 p{ perspective(radians(60.0f), 16.0f / 9.0f, 0.1f, 100.0f) };
 	CHECK(p == glm::perspective(glm::radians(60.0f), 16.0f / 9.0f, 0.1f, 100.0f));
 
@@ -88,7 +83,6 @@ TEST(math_scalar_whitelist)
 	CHECK(o == glm::ortho(-2.0f, 2.0f, -1.0f, 1.0f, 0.1f, 100.0f));
 }
 
-// formatter: vectors
 TEST(math_formatter_vectors)
 {
 	CHECK(std::format("{}", vec2{ 1.0f, 2.0f }) == "(1, 2)");
@@ -106,7 +100,6 @@ TEST(math_formatter_spec_applies_to_every_element)
 	CHECK(std::format("{:5d}", ivec3{ 1, 22, 333 }) == "(    1,    22,   333)");
 }
 
-// formatter: matrices and quaternions
 TEST(math_formatter_mat_and_quat)
 {
 	CHECK(std::format("{}", mat2{ 1.0f }) == "[1, 0; 0, 1]");
@@ -117,7 +110,6 @@ TEST(math_formatter_mat_and_quat)
 	CHECK(std::format("{}", q) == "(1, 2, 3, 4)");
 }
 
-// logger integration
 TEST(logger_formats_math_types)
 {
 	TempFile f("mathlog");

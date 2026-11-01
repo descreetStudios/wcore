@@ -33,7 +33,7 @@ namespace wcore
 		void check_eq(const char* file, int line, const char* ea,
 			const char* eb, const A& a, const B& b)
 		{
-			if (!(a == b)) // for older types
+			if (!(a == b)) // For older types.
 			{
 				std::ostringstream os;
 				os << ea << " == " << eb << " (" << a << " vs " << b << ")";

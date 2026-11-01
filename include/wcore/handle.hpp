@@ -11,7 +11,6 @@
 
 namespace wcore
 {
-	// A lightweight, type-safe reference to a value owned by a HandlePool<T>.
 	template <typename T>
 	class Handle
 	{
@@ -30,7 +29,6 @@ namespace wcore
 		constexpr u32 index() const noexcept { return mIndex; }
 		constexpr u32 generation() const noexcept { return mGeneration; }
 
-		// Packs index and generation into one value, e.g. for serialization.
 		constexpr u64 raw() const noexcept
 		{
 			return (static_cast<u64>(mIndex) << 32) | mGeneration;
@@ -51,7 +49,6 @@ namespace wcore
 		u32 mGeneration{ 0 };
 	};
 
-	// Owns values and hands out generational handles to them.
 	template <typename T>
 	class HandlePool
 	{
@@ -78,7 +75,6 @@ namespace wcore
 		HandlePool() = default;
 		explicit HandlePool(std::size_t capacity) { reserve(capacity); }
 
-		// Constructs a new value and returns a handle to it.
 		template <typename... Args>
 		HandleType create(Args&&... args)
 		{
@@ -99,7 +95,6 @@ namespace wcore
 				index = static_cast<u32>(mSlots.size());
 				mSlots.push_back({});
 
-				// Roll back the new slot if construction throws.
 				try
 				{
 					mDense.emplace_back(index, std::forward<Args>(args)...);
@@ -115,7 +110,6 @@ namespace wcore
 			return HandleType{ index, mSlots[index].generation };
 		}
 
-		// Destroys the value. Returns false when the handle is stale.
 		bool destroy(HandleType handle)
 		{
 			Slot* slot{ find(handle) };
@@ -136,7 +130,6 @@ namespace wcore
 			return true;
 		}
 
-		// Returns the value, or nullptr when the handle is stale.
 		T* get(HandleType handle)
 		{
 			const Slot* slot{ find(handle) };
@@ -149,10 +142,8 @@ namespace wcore
 			return slot ? &mDense[slot->dense].value : nullptr;
 		}
 
-		// True while handle refers to a live value.
 		bool alive(HandleType handle) const { return find(handle) != nullptr; }
 
-		// Unchecked in release; asserts on a stale handle in debug.
 		T& operator[](HandleType handle)
 		{
 			const Slot* slot{ find(handle) };
@@ -169,14 +160,10 @@ namespace wcore
 			return mDense[slot->dense].value;
 		}
 
-		// Number of live values.
 		std::size_t size() const { return mDense.size(); }
 		bool empty() const { return mDense.empty(); }
-
-		// Number of slots that can be allocated without reallocating.
 		std::size_t capacity() const { return mSlots.capacity(); }
 
-		// Preallocates storage for at least capacity live values.
 		void reserve(std::size_t capacity)
 		{
 			mSlots.reserve(capacity);
@@ -184,8 +171,6 @@ namespace wcore
 			mFree.reserve(capacity);
 		}
 
-		// Destroys every value. Slots are retained and their generations are
-		// advanced, so handles created before clear() stay stale afterwards.
 		void clear()
 		{
 			mDense.clear();
@@ -204,7 +189,6 @@ namespace wcore
 			}
 		}
 
-		// Visits every live value in dense order.
 		template <typename Fn>
 		void for_each(Fn&& fn)
 		{
@@ -219,7 +203,6 @@ namespace wcore
 				std::invoke(fn, entry.value);
 		}
 
-		// Visits every live value together with its handle.
 		template <typename Fn>
 		void for_each_with_handle(Fn&& fn)
 		{
@@ -270,7 +253,7 @@ namespace wcore
 		std::vector<Entry> mDense;
 		std::vector<u32> mFree;
 	};
-} // namespace wcore
+}
 
 template <typename T>
 struct std::formatter<wcore::Handle<T>>

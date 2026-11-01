@@ -2,10 +2,16 @@ cmake_minimum_required(VERSION 3.21)
 project(wcore LANGUAGES CXX)
 
 add_library(wcore STATIC
+    "src/arena.cpp"
+    "src/binary.cpp"
     "src/clock.cpp"
+    "src/event.cpp"
+    "src/free_list.cpp"
     "src/io.cpp"
+    "src/job_system.cpp"
     "src/json.cpp"
     "src/logger.cpp"
+    "src/pool.cpp"
     "src/profiler.cpp")
 add_library(wcore::wcore ALIAS wcore)
 

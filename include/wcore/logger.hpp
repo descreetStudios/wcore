@@ -17,9 +17,6 @@ namespace wcore::logger
 		Off
 	};
 
-	// Configures the console logger and, when filePath is not empty, a file
-	// sink. The path is a filesystem path, so non-ASCII names work on every
-	// platform. Throws when the file cannot be opened.
 	void init(Level level = Level::Info,
 		const std::filesystem::path& filePath = {});
 	void set_level(Level level);

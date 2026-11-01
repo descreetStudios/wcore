@@ -15,7 +15,6 @@
 
 namespace wcore
 {
-	// A type-safe, synchronous event bus.
 	class EventBus
 	{
 	private:
@@ -43,11 +42,7 @@ namespace wcore
 			std::vector<std::unique_ptr<SubscriberBase>> subscribers;
 			u32 depth{ 0 };
 
-			void cleanup()
-			{
-				std::erase_if(subscribers,
-					[](const auto& subscriber) { return !subscriber->active; });
-			}
+			void cleanup();
 		};
 
 		struct State
@@ -56,103 +51,27 @@ namespace wcore
 			std::unordered_map<std::type_index, std::shared_ptr<Channel>> channels;
 			u64 nextId{ 1 };
 
-			// The caller must hold mutex.
-			bool remove(std::type_index type, u64 id)
-			{
-				auto it = channels.find(type);
-				if (it == channels.end()) return false;
+			bool remove(std::type_index type, u64 id);
 
-				const std::shared_ptr<Channel>& channel{ it->second };
-				for (auto subscriber = channel->subscribers.begin();
-					subscriber != channel->subscribers.end(); ++subscriber)
-				{
-					if ((*subscriber)->id != id) continue;
-
-					(*subscriber)->active = false;
-					if (channel->depth == 0)
-					{
-						channel->subscribers.erase(subscriber);
-						if (channel->subscribers.empty())
-							channels.erase(it);
-					}
-					return true;
-				}
-				return false;
-			}
-
-			// The caller must hold mutex.
-			bool contains(std::type_index type, u64 id) const
-			{
-				auto it = channels.find(type);
-				if (it == channels.end()) return false;
-
-				for (const auto& subscriber : it->second->subscribers)
-				{
-					if (subscriber->id == id && subscriber->active)
-						return true;
-				}
-				return false;
-			}
+			bool contains(std::type_index type, u64 id) const;
 		};
 
 	public:
-		// RAII token for one subscription. Move-only.
 		class Subscription
 		{
 		public:
 			Subscription() noexcept = default;
-			~Subscription() { unsubscribe(); }
+			~Subscription();
 
 			Subscription(const Subscription&) = delete;
 			Subscription& operator=(const Subscription&) = delete;
 
-			Subscription(Subscription&& other) noexcept
-				: mState(std::move(other.mState)),
-				mType(other.mType),
-				mId(other.mId)
-			{
-				other.mId = 0;
-			}
+			Subscription(Subscription&& other) noexcept;
+			Subscription& operator=(Subscription&& other) noexcept;
 
-			Subscription& operator=(Subscription&& other) noexcept
-			{
-				if (this != &other)
-				{
-					unsubscribe();
-					mState = std::move(other.mState);
-					mType = other.mType;
-					mId = other.mId;
-					other.mId = 0;
-				}
-				return *this;
-			}
+			void unsubscribe();
 
-			// Stops receiving events. Safe to call more than once.
-			void unsubscribe()
-			{
-				if (mId == 0) return;
-
-				if (const std::shared_ptr<State> state{ mState.lock() })
-				{
-					std::lock_guard<std::recursive_mutex> lock{ state->mutex };
-					state->remove(mType, mId);
-				}
-
-				mState.reset();
-				mId = 0;
-			}
-
-			// True while the subscription is registered with a live bus.
-			bool active() const
-			{
-				if (mId == 0) return false;
-
-				const std::shared_ptr<State> state{ mState.lock() };
-				if (!state) return false;
-
-				std::lock_guard<std::recursive_mutex> lock{ state->mutex };
-				return state->contains(mType, mId);
-			}
+			bool active() const;
 
 			explicit operator bool() const { return active(); }
 
@@ -176,7 +95,6 @@ namespace wcore
 		EventBus(EventBus&&) = delete;
 		EventBus& operator=(EventBus&&) = delete;
 
-		// Registers a handler for events of type E.
 		template <typename E, typename Fn>
 		[[nodiscard]] Subscription subscribe(Fn&& fn)
 		{
@@ -196,8 +114,6 @@ namespace wcore
 			return Subscription{ mState, type, id };
 		}
 
-		// Invokes every handler registered for E and returns how many ran.
-		// Handlers may publish nested events, subscribe and unsubscribe.
 		template <typename E>
 		std::size_t publish(const E& event)
 		{
@@ -235,46 +151,15 @@ namespace wcore
 			return called;
 		}
 
-		// Removes every subscription. Handlers already running keep executing.
-		void clear()
-		{
-			std::lock_guard<std::recursive_mutex> lock{ mState->mutex };
-			mState->channels.clear();
-		}
+		void clear();
 
-		// Number of active subscriptions across all event types.
-		std::size_t subscriber_count() const
-		{
-			std::lock_guard<std::recursive_mutex> lock{ mState->mutex };
-
-			std::size_t count{ 0 };
-			for (const auto& entry : mState->channels)
-			{
-				for (const auto& subscriber : entry.second->subscribers)
-				{
-					if (subscriber->active) ++count;
-				}
-			}
-			return count;
-		}
+		std::size_t subscriber_count() const;
 
 		bool empty() const { return subscriber_count() == 0; }
 
 	private:
-		// The caller must hold mState->mutex.
-		void finish_dispatch(Channel& channel, std::type_index type)
-		{
-			--channel.depth;
-			if (channel.depth != 0) return;
-
-			channel.cleanup();
-			if (!channel.subscribers.empty()) return;
-
-			auto it = mState->channels.find(type);
-			if (it != mState->channels.end() && it->second.get() == &channel)
-				mState->channels.erase(it);
-		}
+		void finish_dispatch(Channel& channel, std::type_index type);
 
 		std::shared_ptr<State> mState{ std::make_shared<State>() };
 	};
-} // namespace wcore
+}

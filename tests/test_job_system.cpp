@@ -34,9 +34,9 @@ TEST(job_system_submit_runs_job)
 	JobSystem jobs{ 2 };
 	std::atomic<int> value{ 0 };
 
-	JobHandle handle = jobs.submit([&] {
+	JobHandle handle{ jobs.submit([&] {
 		value.store(42, std::memory_order_relaxed);
-	});
+	}) };
 
 	CHECK(handle.valid());
 	handle.wait();
@@ -61,10 +61,10 @@ TEST(job_system_handle_is_copyable)
 	JobSystem jobs{ 2 };
 	std::atomic<u32> counter{ 0 };
 
-	JobHandle handle = jobs.submit([&] {
+	JobHandle handle{ jobs.submit([&] {
 		counter.fetch_add(1, std::memory_order_relaxed);
-	});
-	JobHandle copy = handle;
+	}) };
+	JobHandle copy{ handle };
 
 	copy.wait();
 
@@ -194,13 +194,13 @@ TEST(job_system_nested_submit_and_wait)
 	JobSystem jobs{ 1 };
 	std::atomic<int> value{ 0 };
 
-	JobHandle outer = jobs.submit([&] {
-		JobHandle inner = jobs.submit([&] {
+	JobHandle outer{ jobs.submit([&] {
+		JobHandle inner{ jobs.submit([&] {
 			value.store(40, std::memory_order_relaxed);
-		});
+		}) };
 		inner.wait();
 		value.fetch_add(2, std::memory_order_relaxed);
-	});
+	}) };
 
 	outer.wait();
 
@@ -214,11 +214,11 @@ TEST(job_system_parallel_for_from_job)
 	constexpr u32 count{ 500 };
 	std::atomic<u32> sum{ 0 };
 
-	JobHandle outer = jobs.submit([&] {
+	JobHandle outer{ jobs.submit([&] {
 		jobs.parallel_for(count, [&](u32 index) {
 			sum.fetch_add(index, std::memory_order_relaxed);
 		});
-	});
+	}) };
 
 	outer.wait();
 
@@ -230,9 +230,9 @@ TEST(job_system_propagates_job_exception)
 {
 	JobSystem jobs{ 2 };
 
-	JobHandle handle = jobs.submit([] {
+	JobHandle handle{ jobs.submit([] {
 		throw std::runtime_error("job failed");
-	});
+	}) };
 
 	bool threw{ false };
 	try
@@ -304,8 +304,6 @@ TEST(job_system_handle_outlives_system)
 		});
 	}
 
-	// The destructor drains the job; waiting afterwards must not touch the
-	// destroyed system.
 	CHECK(handle.done());
 	handle.wait();
 	CHECK_EQ(value.load(), 5);
@@ -316,10 +314,10 @@ TEST(job_system_pending_and_idle)
 	JobSystem jobs{ 1 };
 	std::atomic<bool> release{ false };
 
-	JobHandle handle = jobs.submit([&] {
+	JobHandle handle{ jobs.submit([&] {
 		while (!release.load(std::memory_order_acquire))
 			std::this_thread::yield();
-	});
+	}) };
 
 	CHECK_EQ(jobs.pending(), 1u);
 	CHECK(!jobs.idle());

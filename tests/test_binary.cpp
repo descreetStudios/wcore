@@ -29,7 +29,7 @@ namespace
 		if (bytes.size() != expected.size())
 			return false;
 
-		std::size_t i = 0;
+		std::size_t i{ 0 };
 		for (const unsigned value : expected)
 		{
 			if (std::to_integer<unsigned>(bytes[i]) != value)
@@ -187,7 +187,7 @@ TEST(binary_pod_round_trip)
 
 TEST(binary_write_and_read_bytes)
 {
-	const binary::Bytes payload = make_bytes({ 1, 2, 3, 4, 5 });
+	const binary::Bytes payload{ make_bytes({ 1, 2, 3, 4, 5 }) };
 
 	binary::Writer writer;
 	writer.write_bytes(payload);
@@ -354,7 +354,6 @@ TEST(binary_reader_stays_failed)
 	CHECK(!reader.read<u8>().has_value());
 	CHECK(reader.failed());
 
-	// Even data cannot be read until the error is cleared.
 	CHECK(!reader.read<u8>().has_value());
 
 	reader.clear_error();
@@ -365,7 +364,7 @@ TEST(binary_reader_stays_failed)
 
 TEST(binary_reader_skip)
 {
-	const binary::Bytes data = make_bytes({ 1, 2, 3, 4 });
+	const binary::Bytes data{ make_bytes({ 1, 2, 3, 4 }) };
 
 	binary::Reader reader(data);
 	CHECK(reader.skip(2));
@@ -380,7 +379,6 @@ TEST(binary_reader_skip)
 TEST(binary_reader_rejects_bad_varuint)
 {
 	{
-		// Eleven continuation bytes cannot fit in a u64.
 		const binary::Bytes data(11, binary::Byte{ 0xFF });
 
 		binary::Reader reader(data);
@@ -388,10 +386,9 @@ TEST(binary_reader_rejects_bad_varuint)
 		CHECK(reader.failed());
 	}
 	{
-		// The tenth byte may only contribute one bit.
-		const binary::Bytes data = make_bytes({
+		const binary::Bytes data{ make_bytes({
 			0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-			0xFF, 0xFF, 0xFF, 0xFF, 0x02 });
+			0xFF, 0xFF, 0xFF, 0xFF, 0x02 }) };
 
 		binary::Reader reader(data);
 		CHECK(!reader.read_varuint().has_value());
@@ -401,8 +398,7 @@ TEST(binary_reader_rejects_bad_varuint)
 
 TEST(binary_reader_rejects_bad_string_length)
 {
-	// Says four bytes follow, but only one is present.
-	const binary::Bytes data = make_bytes({ 4, 0, 0, 0, 'a' });
+	const binary::Bytes data{ make_bytes({ 4, 0, 0, 0, 'a' }) };
 
 	binary::Reader reader(data);
 	CHECK(!reader.read_string().has_value());
@@ -440,7 +436,7 @@ TEST(binary_writer_clear_and_release)
 	CHECK_EQ(writer.size(), 0u);
 
 	writer.write<u8>(9);
-	binary::Bytes bytes = writer.release();
+	binary::Bytes bytes{ writer.release() };
 
 	REQUIRE(bytes.size() == 1);
 	CHECK_EQ(std::to_integer<unsigned>(bytes[0]), 9u);
@@ -449,8 +445,8 @@ TEST(binary_writer_clear_and_release)
 
 TEST(binary_endian_helpers)
 {
-	const u16 value = 0x1234;
-	const u16 swapped = binary::byte_swap(value);
+	const u16 value{ 0x1234 };
+	const u16 swapped{ binary::byte_swap(value) };
 
 	CHECK_EQ(binary::byte_swap(swapped), value);
 	CHECK_EQ(binary::from_little_endian(binary::to_little_endian(value)),
@@ -458,7 +454,7 @@ TEST(binary_endian_helpers)
 	CHECK_EQ(binary::from_big_endian(binary::to_big_endian(value)),
 		value);
 
-	const double number = 3.5;
+	const double number{ 3.5 };
 	CHECK_EQ(binary::from_little_endian(binary::to_little_endian(number)),
 		number);
 }

@@ -9,31 +9,24 @@
 
 namespace wcore
 {
-	// Vectors
 	using glm::ivec2, glm::ivec3, glm::ivec4;
 	using glm::uvec2, glm::uvec3, glm::uvec4;
 	using glm::vec2, glm::vec3, glm::vec4;
 	using glm::dvec2, glm::dvec3, glm::dvec4;
 
-	// Matrices
 	using glm::mat2, glm::mat3, glm::mat4;
 	using glm::dmat2, glm::dmat3, glm::dmat4;
 
-	// Quaternions
 	using glm::quat, glm::dquat;
 
-	// Angle conversion
 	using glm::radians, glm::degrees;
 
-	// Projection builders
-	// Belong here cause of glm wrapper
+	// Belong here because of glm wrapper.
 	using glm::perspective, glm::ortho;
 
-	// Constants
 	using glm::pi, glm::half_pi, glm::two_pi;
 }
 
-// std::formatter support
 template <glm::length_t L, typename T, glm::qualifier Q>
 struct std::formatter<glm::vec<L, T, Q>>
 {

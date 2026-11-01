@@ -42,7 +42,6 @@ struct TempFile
 	}
 	~TempFile()
 	{
-		// release the sink before deleting
 		logger::init(logger::Level::Off);
 		std::error_code ec;
 		fs::remove(path, ec);
@@ -90,7 +89,7 @@ TEST(logger_file_receives_all_levels_when_trace)
 	logger::warn("msg_warn");
 	logger::error("msg_error");
 
-	const std::string out = read_file(f.path);
+	const std::string out{ read_file(f.path) };
 	CHECK(contains(out, "msg_trace"));
 	CHECK(contains(out, "msg_debug"));
 	CHECK(contains(out, "msg_info"));
@@ -108,7 +107,7 @@ TEST(logger_init_level_filters_lower_levels)
 	logger::warn("keep_warn");
 	logger::error("keep_error");
 
-	const std::string out = read_file(f.path);
+	const std::string out{ read_file(f.path) };
 	CHECK(!contains(out, "skip_trace"));
 	CHECK(!contains(out, "skip_debug"));
 	CHECK(!contains(out, "skip_info"));
@@ -126,7 +125,7 @@ TEST(logger_set_level_changes_filtering_at_runtime)
 	logger::info("after_info");
 	logger::debug("after_debug");
 
-	const std::string out = read_file(f.path);
+	const std::string out{ read_file(f.path) };
 	CHECK(!contains(out, "before_info"));
 	CHECK(contains(out, "after_info"));
 	CHECK(!contains(out, "after_debug"));
@@ -140,7 +139,7 @@ TEST(logger_level_off_writes_nothing)
 	logger::error("off_error");
 	logger::fatal("off_fatal");
 
-	const std::string out = read_file(f.path);
+	const std::string out{ read_file(f.path) };
 	CHECK(!contains(out, "off_trace"));
 	CHECK(!contains(out, "off_error"));
 	CHECK(!contains(out, "off_fatal"));
@@ -153,7 +152,7 @@ TEST(logger_set_pattern_applies_to_output)
 	logger::set_pattern("PREFIX|%v");
 	logger::info("patterned");
 
-	const std::string out = read_file(f.path);
+	const std::string out{ read_file(f.path) };
 	CHECK(contains(out, "PREFIX|patterned"));
 }
 
@@ -170,9 +169,6 @@ TEST(logger_level_enum_ordering)
 
 TEST(logger_writes_to_non_ascii_path)
 {
-	// Escapes keep the source encoding independent. On Windows this only
-	// works when the path is opened as a filesystem::path (UTF-16), which is
-	// what logger::init does.
 	const fs::path path{ fs::temp_directory_path() /
 		fs::path(u8"wcore_test_\u00FCn\u00EFc\u00F6d\u00E9.log") };
 
@@ -185,7 +181,6 @@ TEST(logger_writes_to_non_ascii_path)
 
 	std::string content;
 	{
-		// Scoped: Windows cannot delete a file that is still open for reading.
 		std::ifstream in(path, std::ios::binary);
 		std::ostringstream ss;
 		ss << in.rdbuf();

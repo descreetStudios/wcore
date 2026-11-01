@@ -266,7 +266,7 @@ TEST(arena_create_constructs_and_destroy_destructs)
 	int alive{ 0 };
 	Arena arena;
 
-	Tracked* object = arena.create<Tracked>(&alive);
+	Tracked* object{ arena.create<Tracked>(&alive) };
 	REQUIRE(object != nullptr);
 	CHECK_EQ(alive, 1);
 
@@ -279,7 +279,7 @@ TEST(arena_reset_does_not_destroy_objects)
 	int alive{ 0 };
 	Arena arena;
 
-	Tracked* object = arena.create<Tracked>(&alive);
+	Tracked* object{ arena.create<Tracked>(&alive) };
 	REQUIRE(object != nullptr);
 	CHECK_EQ(alive, 1);
 
@@ -315,7 +315,7 @@ TEST(arena_throwing_constructor_rolls_back)
 TEST(arena_supports_over_aligned_types)
 {
 	Arena arena{ 256 };
-	AlignedValue* value = arena.create<AlignedValue>(42);
+	AlignedValue* value{ arena.create<AlignedValue>(42) };
 
 	REQUIRE(value != nullptr);
 	CHECK_EQ(reinterpret_cast<std::uintptr_t>(value) % alignof(AlignedValue), 0u);
@@ -325,7 +325,7 @@ TEST(arena_supports_over_aligned_types)
 TEST(arena_move_preserves_allocations)
 {
 	Arena arena{ 128 };
-	int* value = arena.create<int>(5);
+	int* value{ arena.create<int>(5) };
 	const std::size_t used{ arena.used() };
 	const std::size_t capacity{ arena.capacity() };
 
@@ -340,7 +340,7 @@ TEST(arena_move_preserves_allocations)
 	CHECK_EQ(arena.capacity(), 0u);
 	CHECK_EQ(arena.block_count(), 0u);
 
-	int* other = arena.create<int>(6);
+	int* other{ arena.create<int>(6) };
 	REQUIRE(other != nullptr);
 	CHECK_EQ(*other, 6);
 }
@@ -348,7 +348,7 @@ TEST(arena_move_preserves_allocations)
 TEST(arena_move_assignment_preserves_allocations)
 {
 	Arena source{ 128 };
-	int* value = source.create<int>(7);
+	int* value{ source.create<int>(7) };
 	const std::size_t used{ source.used() };
 
 	Arena target{ 64 };
