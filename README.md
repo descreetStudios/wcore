@@ -16,38 +16,41 @@
 
 ## What is WCORE?
 
-**WCORE** (*Wink Core*) is the shared foundation of the Wink ecosystem. It's the core C++ library that every Wink application, tool and system builds on top of, so common building blocks are written **once**, tested **once**, and reused **everywhere**.
+**WCORE** (*Wink Core*) is the shared foundation of the Wink ecosystem.
+It's the core C++ library that every Wink application, tool and system builds on top of, so common building blocks are written **once**, tested **once**, and reused **everywhere**.
 
-Instead of every Wink project reinventing its own utilities, WCORE provides a single, consistent, well-tested base layer.
+Instead of every Wink project reinventing its own utilities,
+WCORE provides a single, consistent, well-tested base layer.
 
-> All public headers live under `include/wcore/`, so everything is included with the `wcore/` prefix.
+> All public headers live under `include/wcore/`, 
+so everything is included with the `wcore/` prefix.
 
 ## Getting Started
 
 ### Requirements
 
-- **C++20 compiler** with `<format>` support: **MSVC 19.29+**,
-  **GCC 13+** or **Clang 17+**
+- **C++20 compiler** **MSVC 19.29+**, **GCC 13+** or **Clang 17+**
 - **CMake** 3.21 or newer (the presets additionally need Ninja)
 - **Ninja** (only when using the bundled CMake presets)
 
-Tested on Windows with MSVC and on Linux with GCC 13+; the code only uses the
-C++ standard library.
+Tested on Windows with MSVC; the code only uses the C++ standard library.
 
-### Build
+## Building
 
-```bash
+```
 # Configure
 cmake -S . -B build
 
 # Compile
-cmake --build build --config Release
+cmake --build build --config release
 ```
 
-### Use it in your project
+Use `--config debug` or `--config reldeb` for the other build types.
+
+## Use it in your project
 
 ```cpp
-#include <wcore/...>   // Include the module you need.
+#include <wcore/...> // Include the module you need.
 
 int main() {
     // Build something amazing with Wink Core.
@@ -56,14 +59,17 @@ int main() {
 
 ## Testing
 
-WCORE ships with a tiny, homegrown test framework: **`test.hpp`**. No heavy external dependencies, just include the header, write your tests, and let CMake/CTest run them.
+WCORE ships with a tiny, homegrown test framework: **`test.hpp`**. 
+No heavy external dependencies, just include the header, write your tests,
+and let CMake/CTest run them.
 
 ```bash
 cd build
-ctest -C Release --output-on-failure
+ctest -C release --output-on-failure
 ```
 
-Each test file provides its own entry point and is registered with CTest through CMake, which keeps tests fast, isolated and easy to add.
+Each test file is registered with CTest through CMake, matching the wcore
+layout, which keeps tests fast, isolated and easy to add.
 
 ## Contributing
 
