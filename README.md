@@ -8,18 +8,15 @@
 
 <br>
 
-![C++](https://img.shields.io/badge/C%2B%2B-20-00599C?style=for-the-badge&logo=cplusplus&logoColor=white)
-![CMake](https://img.shields.io/badge/CMake-build-064F8C?style=for-the-badge&logo=cmake&logoColor=white)
+![C++](https://img.shields.io/badge/C%2B%2B-20-00599C?style=flat&logo=cplusplus&logoColor=white)
+![CMake](https://img.shields.io/badge/CMake-build-28A745?style=flat&logo=cmake&logoColor=white)
 [![CI](https://github.com/descreetStudios/wcore/actions/workflows/ci.yml/badge.svg)](https://github.com/descreetStudios/wcore/actions/workflows/ci.yml)
-![Status](https://img.shields.io/badge/status-in%20development-orange?style=for-the-badge)
 
 </div>
 
----
-
 ## What is WCORE?
 
-**WCORE** (*Wink Core*) is the shared foundation of the Wink ecosystem. It is the core C++ library that every Wink application, tool and system builds on top of, so common building blocks are written **once**, tested **once**, and reused **everywhere**.
+**WCORE** (*Wink Core*) is the shared foundation of the Wink ecosystem. It's the core C++ library that every Wink application, tool and system builds on top of, so common building blocks are written **once**, tested **once**, and reused **everywhere**.
 
 Instead of every Wink project reinventing its own utilities, WCORE provides a single, consistent, well-tested base layer.
 
@@ -35,8 +32,7 @@ Instead of every Wink project reinventing its own utilities, WCORE provides a si
 - **Ninja** (only when using the bundled CMake presets)
 
 Tested on Windows with MSVC and on Linux with GCC 13+; the code only uses the
-C++ standard library and treats paths with `std::filesystem`, so no platform
-specific headers or APIs are required.
+C++ standard library.
 
 ### Build
 
@@ -51,10 +47,10 @@ cmake --build build --config Release
 ### Use it in your project
 
 ```cpp
-#include <wcore/...>   // include the module you need
+#include <wcore/...>   // Include the module you need.
 
 int main() {
-    // build something amazing with Wink Core
+    // Build something amazing with Wink Core.
 }
 ```
 
@@ -85,6 +81,6 @@ Working on a Wink project and need something in the core?
 
 **Made with ♥ for the Wink ecosystem**
 
-*The project contains minimal, monitored AI written code*.
+*The project contains minimal and monitored AI written code*.
 
 </div>
