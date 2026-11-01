@@ -21,7 +21,7 @@ PUBLIC
     cxx_std_20)
 target_compile_definitions(wcore
 PUBLIC
-    $<$<CONFIG:Debug>:WINK_DEBUG=1>)
+    $<$<CONFIG:Debug>:WCORE_DEBUG=1>)
 
 find_package(Threads REQUIRED)
 
