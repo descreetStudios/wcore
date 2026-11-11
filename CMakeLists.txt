@@ -12,7 +12,8 @@ add_library(wcore STATIC
     "src/json.cpp"
     "src/logger.cpp"
     "src/pool.cpp"
-    "src/profiler.cpp")
+    "src/profiler.cpp"
+    "src/uuid.cpp")
 add_library(wcore::wcore ALIAS wcore)
 
 # --- Definitions --- #

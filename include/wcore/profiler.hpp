@@ -70,7 +70,6 @@ namespace wcore
 		u64 size() const;
 
 		std::string to_chrome_trace() const;
-
 		bool write_chrome_trace(const std::filesystem::path& filePath) const;
 
 	private:
