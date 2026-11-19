@@ -1,9 +1,9 @@
-# External Libraries
+# Dependencies
 include(FetchContent)
 
 FetchContent_Declare(Catch2
 	GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-	GIT_TAG v3.12.0
+	GIT_TAG v3.16.1
 	GIT_SHALLOW TRUE
 	FIND_PACKAGE_ARGS 3 CONFIG
 )

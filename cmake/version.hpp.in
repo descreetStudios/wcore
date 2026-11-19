@@ -1,5 +1,7 @@
 #pragma once
 
+// Generated from the CMake project version. Do not edit.
+
 #define WCORE_VERSION_MAJOR @PROJECT_VERSION_MAJOR@
 #define WCORE_VERSION_MINOR @PROJECT_VERSION_MINOR@
 #define WCORE_VERSION_PATCH @PROJECT_VERSION_PATCH@

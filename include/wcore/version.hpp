@@ -5,15 +5,16 @@
 #include <string>
 #include <string_view>
 
+#include <wcore/types.hpp>
 #include <wcore/version.generated.hpp>
 
 namespace wcore
 {
 	struct Version
 	{
-		unsigned major;
-		unsigned minor;
-		unsigned patch;
+		u32 major;
+		u32 minor;
+		u32 patch;
 
 		constexpr auto operator<=>(const Version&) const = default;
 	};
