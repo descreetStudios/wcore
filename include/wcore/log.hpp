@@ -36,6 +36,21 @@ namespace wcore::log
 	void flush() noexcept;
 	void set_level(Level level) noexcept;
 	Level level() noexcept;
+
+	struct LogSilencer
+	{
+		Level previous{ level() };
+
+		LogSilencer()
+		{
+			set_level(Level::off);
+		}
+
+		~LogSilencer()
+		{
+			set_level(previous);
+		}
+	};
 } // namespace wcore::log
 
 #define WCORE_TRACE(...) SPDLOG_TRACE(__VA_ARGS__)

@@ -83,7 +83,7 @@ target_link_libraries(my_app PRIVATE wcore::wcore)
 include(FetchContent)
 
 FetchContent_Declare(wcore
-	GIT_REPOSITORY <repo-url>
+	GIT_REPOSITORY https://github.com/descreetStudios/wcore.git
 	GIT_TAG        v0.1.0
 )
 FetchContent_MakeAvailable(wcore)
