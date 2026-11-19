@@ -1,6 +1,7 @@
 #include <wcore/version.hpp>
 
 #include <ostream>
+#include <string>
 
 namespace wcore
 {

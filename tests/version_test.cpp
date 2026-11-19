@@ -33,7 +33,7 @@ TEST_CASE("version is available through constants", "[version]")
 	REQUIRE(wcore::CurrentVersion.major == WCORE_VERSION_MAJOR);
 	REQUIRE(wcore::CurrentVersion.minor == WCORE_VERSION_MINOR);
 	REQUIRE(wcore::CurrentVersion.patch == WCORE_VERSION_PATCH);
-	REQUIRE(std::string{wcore::CurrentVersionString} == WCORE_EXPECTED_VERSION);
+	REQUIRE(std::string{ wcore::CurrentVersionString } == WCORE_EXPECTED_VERSION);
 }
 
 TEST_CASE("version is available through runtime functions", "[version]")
@@ -56,5 +56,5 @@ TEST_CASE("versions compare semantically", "[version]")
 {
 	REQUIRE(wcore::Version{ 1, 0, 0 } > wcore::Version{ 0, 9, 9 });
 	REQUIRE(wcore::Version{ 1, 2, 3 } == wcore::Version{ 1, 2, 3 });
-	REQUIRE(wcore::CurrentVersion >= wcore::Version{0, 0, 0});
+	REQUIRE(wcore::CurrentVersion >= wcore::Version{ 0, 0, 0 });
 }

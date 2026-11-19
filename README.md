@@ -142,11 +142,11 @@ The default configuration logs to the console at `info` level. Use `wcore::log::
 
 ```cpp
 wcore::log::Config config;
-config.min_level = wcore::log::Level::debug;
+config.minLevel = wcore::log::Level::debug;
 config.file = "logs/engine.log";
 config.rotate = true;
-config.max_file_size = 5 * 1024 * 1024;
-config.max_files = 3;
+config.maxFileSize = 5 * 1024 * 1024;
+config.maxFiles = 3;
 
 if (!wcore::log::init(config))
 {

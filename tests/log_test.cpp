@@ -7,6 +7,9 @@
 
 #include <filesystem>
 #include <fstream>
+#include <memory>
+#include <sstream>
+#include <string>
 
 namespace
 {
@@ -38,7 +41,7 @@ TEST_CASE("log macros write through the default logger", "[log]")
 
 	WCORE_INFO("hello {}", 42);
 
-	REQUIRE(output.str() == std::string{"hello 42"} + SPDLOG_EOL);
+	REQUIRE(output.str() == std::string{ "hello 42" } + SPDLOG_EOL);
 }
 
 TEST_CASE("log level filters messages", "[log]")
@@ -53,7 +56,7 @@ TEST_CASE("log level filters messages", "[log]")
 	WCORE_INFO("hidden");
 	WCORE_WARN("visible");
 
-	REQUIRE(output.str() == std::string{"visible"} + SPDLOG_EOL);
+	REQUIRE(output.str() == std::string{ "visible" } + SPDLOG_EOL);
 }
 
 TEST_CASE("init configures a file logger", "[log]")
@@ -79,7 +82,7 @@ TEST_CASE("init configures a file logger", "[log]")
 	std::stringstream contents;
 	contents << input.rdbuf();
 
-	REQUIRE(contents.str() == std::string{"written to file"} + SPDLOG_EOL);
+	REQUIRE(contents.str() == std::string{ "written to file" } + SPDLOG_EOL);
 
 	std::filesystem::remove(path, error);
 }

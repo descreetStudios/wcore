@@ -1,6 +1,9 @@
 #pragma once
 
+#include <compare>
+#include <iosfwd>
 #include <string>
+#include <string_view>
 
 #include <wcore/version.generated.hpp>
 
@@ -20,7 +23,7 @@ namespace wcore
 		WCORE_VERSION_MINOR,
 		WCORE_VERSION_PATCH,
 	};
-	inline constexpr std::string_view CurrentVersionString{WCORE_VERSION_STRING};
+	inline constexpr std::string_view CurrentVersionString{ WCORE_VERSION_STRING };
 
 	Version engine_version() noexcept;
 	const char* version_str() noexcept;

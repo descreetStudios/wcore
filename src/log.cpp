@@ -65,7 +65,7 @@ namespace wcore::log
 			}
 			catch (const std::exception& ex)
 			{
-				std::fprintf(stderr, "failed to create console log sink: %s\n", ex.what());
+				std::fprintf(stderr, "wcore: failed to create console log sink: %s\n", ex.what());
 				ok = false;
 			}
 		}
@@ -78,7 +78,7 @@ namespace wcore::log
 			}
 			catch (const std::exception& ex)
 			{
-				std::fprintf(stderr, "failed to create file log sink '%s': %s\n",
+				std::fprintf(stderr, "wcore: failed to create file log sink '%s': %s\n",
 					config.file.c_str(), ex.what());
 				ok = false;
 			}
@@ -86,7 +86,7 @@ namespace wcore::log
 
 		if (sinks.empty())
 		{
-			std::fprintf(stderr, "logging requires at least one working sink\n");
+			std::fprintf(stderr, "wcore: logging requires at least one working sink\n");
 			return false;
 		}
 
@@ -98,7 +98,8 @@ namespace wcore::log
 			logger->set_pattern(config.pattern);
 
 		logger->flush_on(spdlog::level::err);
-		logger->set_error_handler([](const std::string& message) {
+		logger->set_error_handler([](const std::string& message)
+		{
 			std::fprintf(stderr, "wcore: logging error: %s\n", message.c_str());
 		});
 
