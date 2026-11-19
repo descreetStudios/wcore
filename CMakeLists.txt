@@ -3,11 +3,23 @@ project(wcore VERSION 0.1.0 LANGUAGES CXX)
 
 # Options
 option(WCORE_BUILD_TESTS "Build wcore tests" ${PROJECT_IS_TOP_LEVEL})
-option(WCORE_INSTALL "Generate install rules" ${PROJECT_IS_TOP_LEVEL})
+option(WCORE_USE_SYSTEM_SPDLOG "Use an installed spdlog instead of fetching it" OFF)
 
 if(PROJECT_IS_TOP_LEVEL)
 	set(CMAKE_CXX_EXTENSIONS OFF)
 	set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+endif()
+
+# Dependencies
+if(WCORE_USE_SYSTEM_SPDLOG)
+	find_package(spdlog CONFIG REQUIRED)
+elseif(NOT TARGET spdlog::spdlog)
+	include(FetchContent)
+	FetchContent_Declare(spdlog
+		GIT_REPOSITORY https://github.com/gabime/spdlog.git
+		GIT_TAG v1.17.0
+		GIT_SHALLOW TRUE)
+	FetchContent_MakeAvailable(spdlog)
 endif()
 
 # Library
@@ -16,6 +28,7 @@ add_library(wcore::wcore ALIAS wcore)
 
 target_sources(wcore PRIVATE
 	"src/version.cpp"
+	"src/log.cpp"
 )
 
 # Version
@@ -26,10 +39,15 @@ configure_file(
 
 # Target
 target_include_directories(wcore PUBLIC
-	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-	$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
-	$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+	${CMAKE_CURRENT_SOURCE_DIR}/include
+	${CMAKE_CURRENT_BINARY_DIR}/include
 )
+
+target_link_libraries(wcore PUBLIC spdlog::spdlog)
+
+target_compile_definitions(wcore PUBLIC
+	$<$<CONFIG:Debug>:SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_TRACE>
+	$<$<NOT:$<CONFIG:Debug>>:SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_INFO>)
 
 target_compile_features(wcore PUBLIC cxx_std_20)
 
@@ -45,33 +63,4 @@ set_target_properties(wcore
 if(WCORE_BUILD_TESTS)
 	enable_testing()
 	add_subdirectory(tests)
-endif()
-
-# Install
-if(WCORE_INSTALL)
-	include(GNUInstallDirs)
-	include(CMakePackageConfigHelpers)
-
-	install(TARGETS wcore EXPORT wcoreTargets
-		ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-		INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
-	install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
-	install(FILES ${CMAKE_CURRENT_BINARY_DIR}/include/wcore/version.generated.hpp
-		DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/wcore)
-
-	install(EXPORT wcoreTargets 
-		NAMESPACE wcore:: DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/wcore)
-
-	configure_package_config_file(
-		cmake/wcoreConfig.cmake.in
-		${CMAKE_CURRENT_BINARY_DIR}/wcoreConfig.cmake
-		INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/wcore)
-	write_basic_package_version_file(
-		${CMAKE_CURRENT_BINARY_DIR}/wcoreConfigVersion.cmake
-		COMPATIBILITY SameMajorVersion)
-
-	install(FILES
-		${CMAKE_CURRENT_BINARY_DIR}/wcoreConfig.cmake
-		${CMAKE_CURRENT_BINARY_DIR}/wcoreConfigVersion.cmake
-		DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/wcore)
 endif()

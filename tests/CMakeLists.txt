@@ -12,6 +12,7 @@ include(Catch)
 
 # Target
 add_executable(wcore_tests
+	"log_test.cpp"
 	"smoke_test.cpp"
 	"types_test.cpp"
 	"version_test.cpp"
