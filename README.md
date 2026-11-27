@@ -5,7 +5,7 @@
 **A C++20 foundation for modern projects.**
 
 <a href="https://isocpp.org/"><img src="https://img.shields.io/badge/C%2B%2B-20-00599C?logo=cplusplus&logoColor=white" alt="C++20"></a>
-<a href="https://cmake.org/"><img src="https://img.shields.io/badge/CMake-3.24%2B-064F8C?logo=cmake&logoColor=white" alt="CMake 3.24+"></a>
+<a href="https://cmake.org/"><img src="https://img.shields.io/badge/CMake-3.25%2B-064F8C?logo=cmake&logoColor=white" alt="CMake 3.25+"></a>
 
 </div>
 
@@ -13,11 +13,9 @@
 
 The library is deliberately generic. Today it contains a couple of small modules; more will be added over time without changing how you build, link, or include it.
 
-> **Status:** early and evolving. New modules may be added, but the package name, target name, and header layout are intended to remain stable.
-
 ## Requirements
 
-- CMake 3.24 or newer
+- CMake 3.25 or newer
 - A compiler with C++20 support
 - Network access on the first configure (Catch2 and spdlog are fetched by CMake)
 
@@ -30,39 +28,70 @@ cd wcore
 
 ## Build
 
-The quickest path is one of the bundled presets:
+The project ships with CMake presets for Windows and Linux, covering the
+common compilers and the `Debug`, `Release`, and `RelWithDebInfo` (`reldeb`)
+configurations. Each preset configures into its own directory,
+`build/<preset-name>`.
+
+List the presets available on your platform:
 
 ```sh
-# Windows (Visual Studio)
-cmake --preset windows-msvc
+cmake --list-presets
+```
+
+Then configure and build:
+
+```sh
+# Windows / MSVC
+cmake --preset windows-msvc-debug
 cmake --build --preset windows-msvc-debug
 
-# Linux (Ninja Multi-Config)
-cmake --preset linux-ninja
-cmake --build build/linux-ninja --config Debug
+# Linux / GCC
+cmake --preset linux-gcc-debug
+cmake --build --preset linux-gcc-debug
 ```
+
+Replace `debug` with `release` or `reldeb`, and the compiler prefix with one
+of the supported toolchains:
+
+| Platform | Presets |
+| --- | --- |
+| Windows | `windows-msvc-*`, `windows-clang-*`, `windows-mingw-*` |
+| Linux | `linux-gcc-*`, `linux-clang-*` |
+
+The presets use the Ninja generator, so `ninja` and the selected compiler
+must be on `PATH`. On Windows, run from a **Developer PowerShell** or **x64
+Native Tools Command Prompt for Visual Studio** so that `cl` and the bundled
+`ninja.exe` are available; the Clang and MinGW presets require those
+toolchains to be installed.
 
 Or configure manually:
 
 ```sh
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build --config Release
+cmake -S . -B build
+cmake --build build
 ```
+
+Use `-DCMAKE_BUILD_TYPE=Release` with single-config generators (Ninja,
+Makefiles) and `--config Release` with multi-config generators (Visual
+Studio).
 
 ### Build options
 
 | Option | Default | Description |
 | --- | --- | --- |
 | `WCORE_BUILD_TESTS` | `ON` when top-level | Build the test suite |
-| `WCORE_USE_SYSTEM_SPDLOG` | `OFF` | Use an installed spdlog instead of fetching it |
 
 When `wcore` is added as a subdirectory of another project, tests default to `OFF`, so the parent build is not affected.
 
 ## Run the tests
 
 ```sh
-ctest --test-dir build/windows-msvc -C Debug --output-on-failure
+ctest --test-dir build/windows-msvc-debug --output-on-failure
 ```
+
+Use the directory of the preset you built. With a multi-config generator, add
+`-C <Config>`.
 
 The tests use [Catch2](https://github.com/catchorg/Catch2) v3, fetched automatically at configure time. Test discovery is registered with CTest, so each `TEST_CASE` runs as an individual test.
 
@@ -83,7 +112,7 @@ include(FetchContent)
 
 FetchContent_Declare(wcore
 	GIT_REPOSITORY https://github.com/descreetStudios/wcore.git
-	GIT_TAG        v0.1.0
+	GIT_TAG v1.0.1
 )
 FetchContent_MakeAvailable(wcore)
 
@@ -117,7 +146,7 @@ int main()
 ```
 
 ```text
-wcore 0.1.0
+wcore 1.0.1
 1920 x 1080
 ```
 
