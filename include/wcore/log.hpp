@@ -1,8 +1,5 @@
 #pragma once
 
-#include <cstddef>
-#include <string>
-
 #include <spdlog/spdlog.h>
 
 namespace wcore::log

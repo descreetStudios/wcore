@@ -2,9 +2,6 @@
 
 #include <catch2/catch_test_macros.hpp>
 
-#include <sstream>
-#include <string>
-
 namespace
 {
 	constexpr bool matches_macros(const wcore::Version& v)
@@ -38,7 +35,7 @@ TEST_CASE("version is available through constants", "[version]")
 
 TEST_CASE("version is available through runtime functions", "[version]")
 {
-	REQUIRE(wcore::engine_version() == wcore::CurrentVersion);
+	REQUIRE(wcore::version() == wcore::CurrentVersion);
 	REQUIRE(std::string{ wcore::version_str() } == WCORE_EXPECTED_VERSION);
 	REQUIRE(std::string{ wcore::version_string() } == WCORE_EXPECTED_VERSION);
 }

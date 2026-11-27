@@ -1,9 +1,8 @@
-cmake_minimum_required(VERSION 3.24)
-project(wcore VERSION 0.1.0 LANGUAGES CXX)
+cmake_minimum_required(VERSION 3.25)
+project(wcore VERSION 1.0.0 LANGUAGES CXX)
 
 # Options
 option(WCORE_BUILD_TESTS "Build wcore tests" ${PROJECT_IS_TOP_LEVEL})
-option(WCORE_USE_SYSTEM_SPDLOG "Use an installed spdlog instead of fetching it" OFF)
 
 if(PROJECT_IS_TOP_LEVEL)
 	set(CMAKE_CXX_EXTENSIONS OFF)
@@ -34,7 +33,9 @@ target_include_directories(wcore PUBLIC
 	${CMAKE_CURRENT_BINARY_DIR}/include
 )
 
-target_link_libraries(wcore PUBLIC spdlog::spdlog)
+target_link_libraries(wcore PUBLIC 
+	spdlog::spdlog
+)
 
 target_compile_definitions(wcore PUBLIC
 	$<$<CONFIG:Debug>:SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_TRACE>
@@ -47,8 +48,9 @@ target_compile_options(wcore PRIVATE
 	$<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -Wpedantic>
 )
 
+# For Linux/macOS shared modules
 set_target_properties(wcore
-	PROPERTIES POSITION_INDEPENDENT_CODE ON) # For Linux/macOS shared modules
+	PROPERTIES POSITION_INDEPENDENT_CODE ON) 
 
 # Tests
 if(WCORE_BUILD_TESTS)

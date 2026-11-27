@@ -19,7 +19,6 @@ The library is deliberately generic. Today it contains a couple of small modules
 
 - CMake 3.24 or newer
 - A compiler with C++20 support
-- Ninja, for the `linux-ninja` preset
 - Network access on the first configure (Catch2 and spdlog are fetched by CMake)
 
 ## Get the source

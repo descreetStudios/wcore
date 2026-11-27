@@ -1,11 +1,10 @@
 #include <wcore/version.hpp>
 
 #include <ostream>
-#include <string>
 
 namespace wcore
 {
-	Version engine_version() noexcept
+	Version version() noexcept
 	{
 		return CurrentVersion;
 	}
