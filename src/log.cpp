@@ -1,5 +1,11 @@
 #include <wcore/log.hpp>
 
+#include <cstdio>
+#include <exception>
+#include <memory>
+#include <utility>
+#include <vector>
+
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/rotating_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>

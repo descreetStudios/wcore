@@ -7,6 +7,8 @@
 
 #include <filesystem>
 #include <fstream>
+#include <memory>
+#include <sstream>
 
 namespace
 {

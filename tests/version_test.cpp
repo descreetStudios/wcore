@@ -2,6 +2,8 @@
 
 #include <catch2/catch_test_macros.hpp>
 
+#include <sstream>
+
 namespace
 {
 	constexpr bool matches_macros(const wcore::Version& v)
