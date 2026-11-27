@@ -47,8 +47,8 @@ TEST_CASE("log level filters messages", "[log]")
 	DefaultLoggerGuard guard;
 	spdlog::set_default_logger(make_test_logger(output));
 
-	wcore::log::set_level(wcore::log::Level::warn);
-	REQUIRE(wcore::log::level() == wcore::log::Level::warn);
+	wcore::log::set_level(wcore::log::Level::Warn);
+	REQUIRE(wcore::log::level() == wcore::log::Level::Warn);
 
 	WCORE_INFO("hidden");
 	WCORE_WARN("visible");

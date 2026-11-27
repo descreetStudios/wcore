@@ -6,18 +6,18 @@ namespace wcore::log
 {
 	enum class Level
 	{
-		trace,
-		debug,
-		info,
-		warn,
-		error,
-		critical,
-		off,
+		Trace,
+		Debug,
+		Info,
+		Warn,
+		Error,
+		Critical,
+		Off,
 	};
 
 	struct Config
 	{
-		Level minLevel{ Level::info };
+		Level minLevel{ Level::Info };
 		bool console{ true };
 		std::string file;
 		bool rotate{ false };
@@ -40,7 +40,7 @@ namespace wcore::log
 
 		LogSilencer()
 		{
-			set_level(Level::off);
+			set_level(Level::Off);
 		}
 
 		~LogSilencer()

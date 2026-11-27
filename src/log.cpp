@@ -12,13 +12,13 @@ namespace wcore::log
 		{
 			switch (level)
 			{
-			case Level::trace: return spdlog::level::trace;
-			case Level::debug: return spdlog::level::debug;
-			case Level::info: return spdlog::level::info;
-			case Level::warn: return spdlog::level::warn;
-			case Level::error: return spdlog::level::err;
-			case Level::critical: return spdlog::level::critical;
-			case Level::off: return spdlog::level::off;
+			case Level::Trace: return spdlog::level::trace;
+			case Level::Debug: return spdlog::level::debug;
+			case Level::Info: return spdlog::level::info;
+			case Level::Warn: return spdlog::level::warn;
+			case Level::Error: return spdlog::level::err;
+			case Level::Critical: return spdlog::level::critical;
+			case Level::Off: return spdlog::level::off;
 			default: return spdlog::level::info;
 			}
 		}
@@ -27,14 +27,14 @@ namespace wcore::log
 		{
 			switch (level)
 			{
-			case spdlog::level::trace: return Level::trace;
-			case spdlog::level::debug: return Level::debug;
-			case spdlog::level::info: return Level::info;
-			case spdlog::level::warn: return Level::warn;
-			case spdlog::level::err: return Level::error;
-			case spdlog::level::critical: return Level::critical;
-			case spdlog::level::off: return Level::off;
-			default: return Level::info;
+			case spdlog::level::trace: return Level::Trace;
+			case spdlog::level::debug: return Level::Debug;
+			case spdlog::level::info: return Level::Info;
+			case spdlog::level::warn: return Level::Warn;
+			case spdlog::level::err: return Level::Error;
+			case spdlog::level::critical: return Level::Critical;
+			case spdlog::level::off: return Level::Off;
+			default: return Level::Info;
 			}
 		}
 
@@ -140,6 +140,6 @@ namespace wcore::log
 		if (auto logger = spdlog::default_logger())
 			return from_spdlog(logger->level());
 
-		return Level::off;
+		return Level::Off;
 	}
 } // namespace wcore::log
