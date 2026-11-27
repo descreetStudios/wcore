@@ -112,7 +112,7 @@ include(FetchContent)
 
 FetchContent_Declare(wcore
 	GIT_REPOSITORY https://github.com/descreetStudios/wcore.git
-	GIT_TAG v1.0.1
+	GIT_TAG v1.0.2
 )
 FetchContent_MakeAvailable(wcore)
 
@@ -146,7 +146,7 @@ int main()
 ```
 
 ```text
-wcore 1.0.1
+wcore 1.0.2
 1920 x 1080
 ```
 
